@@ -1,0 +1,64 @@
+#include "assert.h"
+
+#include "tic-tac-toe.h"
+
+namespace {
+bool isThreeInARow(const std::array<char, 9>& board, char c) {
+    std::vector<std::array<int, 3>> winning_lines = {{0, 3, 6},
+                                                     {1, 4, 7},
+                                                     {2, 5, 8},
+                                                     {0, 1, 2},
+                                                     {3, 4, 5},
+                                                     {6, 7, 8},
+                                                     {0, 4, 8},
+                                                     {2, 4, 6}};
+    // we need there to be at least one line where all the positions are 'c'.
+    for (const auto& line : winning_lines) {
+        for (const int pos : line) {
+            if (board[pos] != c) {
+                continue;
+            }
+        }
+        // every pos in line is 'c'
+        return true;
+    }
+    // no line has all positions as 'c'
+    return false;
+}
+} // namespace
+
+TTTState::TTTState() :
+    board({'_','_','_','_','_','_','_','_','_'}),
+    x_turn(true)
+{
+}
+
+TTTAction::TTTAction(int board_position_): board_position(board_position_)
+{
+}
+
+TicTacToe::TicTacToe() {}
+
+const TTTState& TicTacToe::simulate(TTTAction action) {
+    // Must place at empty square
+    assert(state.board[action.board_position] == '_');
+
+    char char_to_place = state.x_turn ? 'x' : 'o';
+    state.board[action.board_position] = char_to_place;
+    state.x_turn = !state.x_turn;
+    return state;
+}
+
+std::vector<TTTAction> TicTacToe::getValidActions() {
+    std::vector<TTTAction> valid_actions;
+    for (int i = 0; i < 9; i++) {
+        if (state.board[i] == '_') {
+            valid_actions.push_back(TTTAction(i));
+        }
+    }
+    return valid_actions;
+}
+
+bool TicTacToe::isTerminal() {
+    return isThreeInARow(state.board, 'x') || isThreeInARow(state.board, 'o');
+}

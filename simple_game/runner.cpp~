@@ -1,0 +1,6 @@
+#include "tic-tac-toe.h"
+
+int main() {
+    TicTacToe game;
+    return 0;
+};

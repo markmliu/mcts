@@ -1,0 +1,9 @@
+#include <vector>
+
+// Game should tell you all valid moves at any state.
+template <class State, class Action, class Outcome>
+class Game {
+    virtual const State& simulate(Action a) = 0;
+    virtual std::vector<Action> getValidActions() = 0;
+    virtual bool isTerminal() = 0;
+};
