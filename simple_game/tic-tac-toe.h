@@ -15,9 +15,15 @@ struct TTTState {
 
 struct TTTAction {
     TTTAction(int board_position_);
+
+    bool operator<(const TTTAction& rhs) const {
+        return board_position < rhs.board_position;
+    }
+
     // board position to play at.
     int board_position;
 };
+
 
 class TicTacToe : public Game<TTTState, TTTAction> {
 public:
