@@ -29,6 +29,7 @@ public:
     const TTTState& simulate(TTTAction action) override;
     std::vector<TTTAction> getValidActions() override;
     bool isTerminal() override;
+    void render() override;
     ~TicTacToe() = default;
 private:
     TTTState state;

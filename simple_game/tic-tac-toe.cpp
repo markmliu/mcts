@@ -1,4 +1,6 @@
 #include "assert.h"
+#include <iostream>
+#include <algorithm>
 
 #include "tic-tac-toe.h"
 
@@ -14,16 +16,25 @@ bool isThreeInARow(const std::array<char, 9>& board, char c) {
                                                      {2, 4, 6}};
     // we need there to be at least one line where all the positions are 'c'.
     for (const auto& line : winning_lines) {
+        bool line_broken = false;
         for (const int pos : line) {
             if (board[pos] != c) {
-                continue;
+                line_broken = true;
+                break;
             }
         }
         // every pos in line is 'c'
-        return true;
+        if (!line_broken) {
+            std::cout << "game over on indices: " << line[0] << "," << line[1] << "," << line[2] << std::endl;
+            return true;
+        }
     }
     // no line has all positions as 'c'
     return false;
+}
+
+int numFreeSpaces(const std::array<char, 9>& board) {
+    return std::count_if(board.begin(), board.end(), [](char c) {return c = '_';});
 }
 } // namespace
 
@@ -60,5 +71,13 @@ std::vector<TTTAction> TicTacToe::getValidActions() {
 }
 
 bool TicTacToe::isTerminal() {
-    return isThreeInARow(state.board, 'x') || isThreeInARow(state.board, 'o');
+    std::cout << "checking for terminality" << std::endl;
+    return isThreeInARow(state.board, 'x') || isThreeInARow(state.board, 'o') || numFreeSpaces(state.board) == 0;
+}
+
+void TicTacToe::render() {
+    std::cout << state.board[0] << "," << state.board[1] << "," << state.board[2] << std::endl;
+    std::cout << state.board[3] << "," << state.board[4] << "," << state.board[5] << std::endl;
+    std::cout << state.board[6] << "," << state.board[7] << "," << state.board[8] << std::endl;
+    std::cout << "_____________________________________" << std::endl;;
 }

@@ -10,6 +10,7 @@ public:
     virtual const State& simulate(Action a) = 0;
     virtual std::vector<Action> getValidActions() = 0;
     virtual bool isTerminal() = 0;
+    virtual void render() = 0;
     virtual ~Game() = default;
 };
 
