@@ -19,14 +19,10 @@ struct TTTAction {
     int board_position;
 };
 
-struct TTTOutcome {
-    //
-};
-
-class TicTacToe : public Game<TTTState, TTTAction, TTTOutcome> {
+class TicTacToe : public Game<TTTState, TTTAction> {
 public:
     TicTacToe();
-    const TTTState& simulate(TTTAction action) override;
+    double simulate(TTTAction action) override;
     std::vector<TTTAction> getValidActions() override;
     bool isTerminal() override;
     void render() override;

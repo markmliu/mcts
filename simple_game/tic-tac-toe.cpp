@@ -50,14 +50,20 @@ TTTAction::TTTAction(int board_position_): board_position(board_position_)
 
 TicTacToe::TicTacToe() {}
 
-const TTTState& TicTacToe::simulate(TTTAction action) {
+double TicTacToe::simulate(TTTAction action) {
     // Must place at empty square
     assert(state.board[action.board_position] == '_');
 
     char char_to_place = state.x_turn ? 'x' : 'o';
     state.board[action.board_position] = char_to_place;
     state.x_turn = !state.x_turn;
-    return state;
+
+    if (isThreeInARow(state.board, 'x')) {
+        return 1.0;
+    } else if (isThreeInARow(state.board, 'o')) {
+        return -1.0;
+    }
+    return 0.0;
 }
 
 std::vector<TTTAction> TicTacToe::getValidActions() {
@@ -71,7 +77,6 @@ std::vector<TTTAction> TicTacToe::getValidActions() {
 }
 
 bool TicTacToe::isTerminal() {
-    std::cout << "checking for terminality" << std::endl;
     return isThreeInARow(state.board, 'x') || isThreeInARow(state.board, 'o') || numFreeSpaces(state.board) == 0;
 }
 
