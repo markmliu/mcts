@@ -50,6 +50,10 @@ TTTAction::TTTAction(int board_position_): board_position(board_position_)
 
 TicTacToe::TicTacToe() {}
 
+void TicTacToe::reset() {
+    state = TTTState();
+}
+
 double TicTacToe::simulate(TTTAction action) {
     // Must place at empty square
     assert(state.board[action.board_position] == '_');
@@ -74,6 +78,10 @@ std::vector<TTTAction> TicTacToe::getValidActions() {
         }
     }
     return valid_actions;
+}
+
+bool TicTacToe::isOurTurn() {
+    return state.x_turn;
 }
 
 bool TicTacToe::isTerminal() {

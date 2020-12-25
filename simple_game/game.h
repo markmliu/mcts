@@ -7,8 +7,12 @@
 template <class State, class Action>
 class Game {
 public:
+    virtual void reset() = 0;
     virtual double simulate(Action a) = 0;
     virtual std::vector<Action> getValidActions() = 0;
+
+    // Returns true if our turn, false if opponents turn.
+    virtual bool isOurTurn() = 0;
     virtual bool isTerminal() = 0;
     virtual void render() = 0;
     virtual ~Game() = default;

@@ -22,8 +22,10 @@ struct TTTAction {
 class TicTacToe : public Game<TTTState, TTTAction> {
 public:
     TicTacToe();
+    void reset() override;
     double simulate(TTTAction action) override;
     std::vector<TTTAction> getValidActions() override;
+    bool isOurTurn() override;
     bool isTerminal() override;
     void render() override;
     ~TicTacToe() = default;
