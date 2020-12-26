@@ -1,13 +1,13 @@
 #include "tic-tac-toe.h"
-#include "agent.h"
+#include "mcts.h"
 
 int main() {
     std::unique_ptr<Game<TTTState, TTTAction>> game = std::make_unique<TicTacToe>();
-    // Agent<TTTState, TTTAction> agent;
-    // agent.play(game.get());
 
     MCTS<TTTState, TTTAction> mcts;
-    mcts.rollout(game.get());
+    for (int i = 0; i < 1000; i++) {
+        mcts.rollout(game.get());
+    }
     mcts.renderTree();
     return 0;
 };

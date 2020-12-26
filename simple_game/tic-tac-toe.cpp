@@ -44,6 +44,13 @@ TTTState::TTTState() :
 {
 }
 
+void TTTState::render() const {
+    std::cout << board[0] << "," << board[1] << "," << board[2] << std::endl;
+    std::cout << board[3] << "," << board[4] << "," << board[5] << std::endl;
+    std::cout << board[6] << "," << board[7] << "," << board[8] << std::endl;
+    std::cout << "_____________________________________" << std::endl;
+}
+
 TTTAction::TTTAction(int board_position_): board_position(board_position_)
 {
 }
@@ -97,8 +104,5 @@ bool TicTacToe::isTerminal() {
 }
 
 void TicTacToe::render() {
-    std::cout << state.board[0] << "," << state.board[1] << "," << state.board[2] << std::endl;
-    std::cout << state.board[3] << "," << state.board[4] << "," << state.board[5] << std::endl;
-    std::cout << state.board[6] << "," << state.board[7] << "," << state.board[8] << std::endl;
-    std::cout << "_____________________________________" << std::endl;;
+    state.render();
 }

@@ -6,7 +6,7 @@
 
 struct TTTState {
     TTTState();
-
+    void render() const;
     // each square can be 'x', 'o' or '_'
     std::array<char, 9> board;
     // start off as x's turn, flip b/w x and o.

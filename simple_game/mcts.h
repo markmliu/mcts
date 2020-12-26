@@ -123,7 +123,7 @@ public:
             int depth = depth_top.first;
             const Node* top = depth_top.second;
             queue.pop();
-            std::cout << "depth: " << depth << std::endl;
+            top->state.render();
             std::cout << "num rollouts: " << top->num_rollouts_involved << std::endl;
             std::cout << "reward: " << top->total_reward_from_here << std::endl;
             for (const auto& action_child : top->children) {
