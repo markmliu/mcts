@@ -3,6 +3,7 @@
 #include <map>
 #include <random>
 #include <queue>
+#include <optional>
 
 template <class State, class Action>
 class RandomAgent{
@@ -30,12 +31,18 @@ template <class State, class Action>
 class MCTS{
 public:
     struct Node {
-        Node() : num_rollouts_involved(0),
-                 total_reward_from_here(0) {}
+        Node(const State& state_) : num_rollouts_involved(0),
+                                    total_reward_from_here(0),
+                                    state(state_) {}
         int num_rollouts_involved;
         double total_reward_from_here;
         std::map<Action, Node> children;
+
+        // let's store the board in the node as well for visualization.
+        State state;
     };
+
+    MCTS() : root(Node(State())) {}
 
     void rollout(Game<State,Action>* game) {
         // Simulate a rollout with uniform random policy and likewise for opponent.
@@ -49,7 +56,20 @@ public:
         // 1. Do a playthrough, keeping track of the actions that were played.
         game->reset();
 
-        std::vector<std::pair<Action, double>> rollout_history;
+        struct HistoryBuffer {
+            HistoryBuffer(Action action_,
+                          double reward_,
+                          const State& state_) : action(action_), reward(reward_), state(state_) {}
+            // Action that created this node
+            Action action;
+            // Reward after taking action
+            double reward;
+            // State after taking action
+            State state;
+        };
+
+        std::vector<HistoryBuffer> rollout_history;
+
         while (!game->isTerminal()) {
             Action action = [&]() {
                 if (game->isOurTurn()) {
@@ -61,15 +81,15 @@ public:
 
             double reward = game->simulate(action); // unused.
             game->render();
-            rollout_history.push_back(std::make_pair(action, reward));
+            rollout_history.emplace_back(action, reward, game->getCurrentState());
         }
 
         double total_rollout_reward = std::accumulate(rollout_history.begin(),
                                                       rollout_history.end(),
                                                       0.0,
                                                       [&](double a,
-                                                          const std::pair<Action, double>& el) {
-                                                          return a + el.second;
+                                                          const HistoryBuffer& el) {
+                                                          return a + el.reward;
                                                       });
         std::cout << "calculating total reward: " << total_rollout_reward << std::endl;
         auto updateNode = [&](Node* current) {
@@ -81,13 +101,16 @@ public:
         updateNode(current);
 
         // Go through the rollout history and update node values for each one.
-        for (const auto& action_reward : rollout_history) {
-            const Action& action = action_reward.first;
+        for (const auto& buffer : rollout_history) {
+            const Action& action = buffer.action;
             // This should create a child if one didn't already exist.
-
-            Node& next = current->children[action];
+            if (current->children.find(action) == current->children.end()) {
+                current->children.insert(std::make_pair(action, Node(buffer.state)));
+            }
+            Node& next = current->children.at(action);
             updateNode(&next);
             current = &next;
+
         }
     }
 

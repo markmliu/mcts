@@ -80,6 +80,10 @@ std::vector<TTTAction> TicTacToe::getValidActions() {
     return valid_actions;
 }
 
+const TTTState& TicTacToe::getCurrentState() {
+    return state;
+}
+
 bool TicTacToe::isOurTurn() {
     return state.x_turn;
 }

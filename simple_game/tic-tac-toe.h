@@ -31,6 +31,7 @@ public:
     void reset() override;
     double simulate(TTTAction action) override;
     std::vector<TTTAction> getValidActions() override;
+    const TTTState& getCurrentState() override;
     bool isOurTurn() override;
     bool isTerminal() override;
     void render() override;
