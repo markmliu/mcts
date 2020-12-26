@@ -8,6 +8,6 @@ int main() {
 
     MCTS<TTTState, TTTAction> mcts;
     mcts.rollout(game.get());
-
+    mcts.renderTree();
     return 0;
 };

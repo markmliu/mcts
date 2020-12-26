@@ -34,7 +34,7 @@ bool isThreeInARow(const std::array<char, 9>& board, char c) {
 }
 
 int numFreeSpaces(const std::array<char, 9>& board) {
-    return std::count_if(board.begin(), board.end(), [](char c) {return c = '_';});
+    return std::count_if(board.begin(), board.end(), [](char c) {return c == '_';});
 }
 } // namespace
 
@@ -85,7 +85,11 @@ bool TicTacToe::isOurTurn() {
 }
 
 bool TicTacToe::isTerminal() {
-    return isThreeInARow(state.board, 'x') || isThreeInARow(state.board, 'o') || numFreeSpaces(state.board) == 0;
+    bool is_terminal =  isThreeInARow(state.board, 'x')
+        || isThreeInARow(state.board, 'o')
+        || numFreeSpaces(state.board) == 0;
+    std::cout << "game is terminal: " << is_terminal << std::endl;
+    return is_terminal;
 }
 
 void TicTacToe::render() {
