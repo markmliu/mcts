@@ -8,6 +8,6 @@ int main() {
     for (int i = 0; i < 1000; i++) {
         mcts.rollout(game.get());
     }
-    mcts.renderTree();
+    mcts.renderTree(/*max_depth=*/3);
     return 0;
 };

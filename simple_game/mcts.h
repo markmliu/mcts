@@ -114,7 +114,7 @@ public:
         }
     }
 
-    void renderTree() {
+    void renderTree(int max_depth) {
         // how to display the tree? maybe with a BFS
         std::queue<std::pair<int, const Node*>> queue;
         queue.push(std::make_pair(0, &root));
@@ -122,6 +122,11 @@ public:
             std::pair<int, const Node*> depth_top = queue.front();
             int depth = depth_top.first;
             const Node* top = depth_top.second;
+
+            if (depth > max_depth) {
+                break;
+            }
+
             queue.pop();
             top->state.render();
             std::cout << "num rollouts: " << top->num_rollouts_involved << std::endl;
