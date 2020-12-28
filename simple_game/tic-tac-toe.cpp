@@ -77,7 +77,7 @@ double TicTacToe::simulate(TTTAction action) {
     return 0.0;
 }
 
-std::vector<TTTAction> TicTacToe::getValidActions() {
+std::vector<TTTAction> TicTacToe::getValidActions() const {
     std::vector<TTTAction> valid_actions;
     for (int i = 0; i < 9; i++) {
         if (state.board[i] == '_') {
@@ -87,15 +87,15 @@ std::vector<TTTAction> TicTacToe::getValidActions() {
     return valid_actions;
 }
 
-const TTTState& TicTacToe::getCurrentState() {
+const TTTState& TicTacToe::getCurrentState() const {
     return state;
 }
 
-bool TicTacToe::isOurTurn() {
+bool TicTacToe::isOurTurn() const {
     return state.x_turn;
 }
 
-bool TicTacToe::isTerminal() {
+bool TicTacToe::isTerminal() const {
     bool is_terminal =  isThreeInARow(state.board, 'x')
         || isThreeInARow(state.board, 'o')
         || numFreeSpaces(state.board) == 0;
@@ -103,6 +103,6 @@ bool TicTacToe::isTerminal() {
     return is_terminal;
 }
 
-void TicTacToe::render() {
+void TicTacToe::render() const {
     state.render();
 }

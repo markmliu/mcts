@@ -30,11 +30,11 @@ public:
     TicTacToe();
     void reset() override;
     double simulate(TTTAction action) override;
-    std::vector<TTTAction> getValidActions() override;
-    const TTTState& getCurrentState() override;
-    bool isOurTurn() override;
-    bool isTerminal() override;
-    void render() override;
+    std::vector<TTTAction> getValidActions() const override;
+    const TTTState& getCurrentState() const override;
+    bool isOurTurn() const override;
+    bool isTerminal() const override;
+    void render() const override;
     ~TicTacToe() = default;
 private:
     TTTState state;

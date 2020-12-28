@@ -1,31 +1,10 @@
 #include "game.h"
+#include "policy.h"
+
 #include <iostream>
 #include <map>
-#include <random>
 #include <queue>
 #include <optional>
-
-template <class State, class Action>
-class RandomAgent{
-public:
-    RandomAgent() {
-        gen = std::mt19937(rd()); // seed the generator
-    }
-    Action act(Game<State,Action>* game) {
-        assert(!game->isTerminal());
-        std::vector<Action> valid_actions = game->getValidActions();
-        assert(!valid_actions.empty());
-
-        // choose a random action in range
-        std::uniform_int_distribution<> distr(0, valid_actions.size()-1);
-        int random_idx = distr(gen);
-        return valid_actions.at(random_idx);
-    }
-private:
-    std::random_device rd; // obtain a random number from hardware
-    std::mt19937 gen;
-
-};
 
 template <class State, class Action>
 class MCTS{
@@ -140,6 +119,6 @@ public:
 
 private:
     Node root;
-    RandomAgent<State,Action> us;
-    RandomAgent<State,Action> them;
+    RandomValidPolicy<State,Action> us;
+    RandomValidPolicy<State,Action> them;
 };

@@ -9,13 +9,13 @@ class Game {
 public:
     virtual void reset() = 0;
     virtual double simulate(Action a) = 0;
-    virtual std::vector<Action> getValidActions() = 0;
-    virtual const State& getCurrentState() = 0;
+    virtual std::vector<Action> getValidActions() const = 0;
+    virtual const State& getCurrentState() const = 0;
 
     // Returns true if our turn, false if opponents turn.
-    virtual bool isOurTurn() = 0;
-    virtual bool isTerminal() = 0;
-    virtual void render() = 0;
+    virtual bool isOurTurn() const = 0;
+    virtual bool isTerminal() const = 0;
+    virtual void render() const = 0;
     virtual ~Game() = default;
 };
 
