@@ -29,7 +29,9 @@ private:
   std::vector<Action> actions_;
 };
 
-TEST_CASE("Factorials are computed", "[factorial]") {
+using Catch::Approx;
+
+TEST_CASE("Basic rollout backprop is working", "[mcts]") {
   // Make a game where x wins and make sure the tree is updated correctly.
   //
   //  x3, x7, x5
@@ -47,6 +49,18 @@ TEST_CASE("Factorials are computed", "[factorial]") {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   auto rollout_history =
       mcts.rollout(game.get(), self_policy.get(), opponent_policy.get());
+
+  // get the nodes for introspection
+  const auto &nodes = mcts.getNodes();
+
+  for (const auto &frame : rollout_history) {
+    std::cout << "Verifying assumptions for state: " << std::endl;
+    frame.state.render();
+    REQUIRE(nodes.find(frame.state) != nodes.end());
+    REQUIRE(nodes.at(frame.state).num_rollouts_involved == 1);
+    // Each frame should have a positive reward since we won.
+    REQUIRE(nodes.at(frame.state).total_reward_from_here == Approx(1.0));
+  }
 
   // REQUIRE(Factorial(1) == 1);
   // REQUIRE(Factorial(2) == 2);

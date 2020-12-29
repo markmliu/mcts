@@ -21,8 +21,8 @@ public:
   };
 
   // Vector of these can be used to store history of a rollout.
-  struct HistoryBuffer {
-    HistoryBuffer(Action action_, double reward_, const State &state_)
+  struct HistoryFrame {
+    HistoryFrame(Action action_, double reward_, const State &state_)
         : action(action_), reward(reward_), state(state_) {}
     // Action that created this node
     Action action;
@@ -43,9 +43,9 @@ public:
     rollout(game, self_policy.get(), opponent_policy.get());
   }
 
-  std::vector<HistoryBuffer> rollout(Game<State, Action> *game,
-                                     Policy<State, Action> *self_policy,
-                                     Policy<State, Action> *opponent_policy) {
+  std::vector<HistoryFrame> rollout(Game<State, Action> *game,
+                                    Policy<State, Action> *self_policy,
+                                    Policy<State, Action> *opponent_policy) {
     // Simulate a rollout with uniform random policy and likewise for opponent.
     // As we simulate, we want to update the game tree. Each node of the tree
     // stores:
@@ -57,7 +57,7 @@ public:
     // 1. Do a playthrough, keeping track of the actions that were played.
     game->reset();
 
-    std::vector<HistoryBuffer> rollout_history;
+    std::vector<HistoryFrame> rollout_history;
 
     while (!game->isTerminal()) {
       Action action = [&]() {
@@ -75,7 +75,7 @@ public:
 
     double total_rollout_reward = std::accumulate(
         rollout_history.begin(), rollout_history.end(), 0.0,
-        [&](double a, const HistoryBuffer &el) { return a + el.reward; });
+        [&](double a, const HistoryFrame &el) { return a + el.reward; });
     std::cout << "calculating total reward: " << total_rollout_reward
               << std::endl;
     auto updateNode = [&](Node *current) {
@@ -87,24 +87,27 @@ public:
     updateNode(current);
 
     // Go through the rollout history and update node values for each one.
-    for (const auto &buffer : rollout_history) {
+    for (const auto &frame : rollout_history) {
       // Create the node if it doesn't exist.
-      if (nodes_.find(buffer.state) == nodes_.end()) {
-        nodes_.insert(std::make_pair(buffer.state, Node(buffer.state)));
+      if (nodes_.find(frame.state) == nodes_.end()) {
+        nodes_.insert(std::make_pair(frame.state, Node(frame.state)));
       }
 
       // Update the parent node to point to the newly created node, if it does
       // not already.
-      const Action &action = buffer.action;
+      const Action &action = frame.action;
       if (current->children.find(action) == current->children.end()) {
         current->children.insert(
-            std::make_pair(action, &nodes_.at(buffer.state)));
+            std::make_pair(action, &nodes_.at(frame.state)));
       }
 
-      Node &next = nodes_.at(buffer.state);
+      Node &next = nodes_.at(frame.state);
       updateNode(&next);
       current = &next;
     }
+
+    // reset the game to be a good citizen :)
+    game->reset();
     return rollout_history;
   }
 
@@ -131,6 +134,9 @@ public:
       }
     }
   }
+
+  // For introspection
+  const std::map<State, Node> &getNodes() { return nodes_; }
 
 private:
   std::map<State, Node> nodes_;
