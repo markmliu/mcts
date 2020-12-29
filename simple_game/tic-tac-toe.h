@@ -1,5 +1,6 @@
 #include <optional>
 #include <array>
+#include <string>
 
 #include "game.h"
 
@@ -18,6 +19,10 @@ struct TTTAction {
 
     bool operator<(const TTTAction& rhs) const {
         return board_position < rhs.board_position;
+    }
+
+    std::string toString() const {
+        return "Board position: " + std::to_string(board_position);
     }
 
     // board position to play at.

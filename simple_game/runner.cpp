@@ -1,16 +1,26 @@
 #include "tic-tac-toe.h"
 #include "mcts.h"
 
-int main() {
-    std::unique_ptr<Game<TTTState, TTTAction>> game = std::make_unique<TicTacToe>();
+typedef TTTState State;
+typedef TTTAction Action;
 
-    MCTS<TTTState, TTTAction> mcts;
+int main() {
+    std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
+
+    MCTS<State, Action> mcts;
 
     // train
     for (int i = 0; i < 10000; i++) {
-        mcts.rollout(game.get());
+        mcts.train(game.get());
     }
     mcts.renderTree(/*max_depth=*/3);
+
+    game->reset();
+    // play against it!
+    // TODO: should use a greedy policy here
+    auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
+    auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
+    mcts.rollout(game.get(), self_policy.get(), opponent_policy.get());
 
     return 0;
 };

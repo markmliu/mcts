@@ -5,6 +5,7 @@
 #include <map>
 #include <queue>
 #include <optional>
+#include <memory>
 
 template <class State, class Action>
 class MCTS{
@@ -23,7 +24,15 @@ public:
 
     MCTS() : root(Node(State())) {}
 
-    void rollout(Game<State,Action>* game) {
+    void train(Game<State,Action>* game) {
+        auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
+        auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
+        rollout(game, self_policy.get(), opponent_policy.get());
+    }
+
+    void rollout(Game<State,Action>* game,
+                 Policy<State, Action>* self_policy,
+                 Policy<State, Action>* opponent_policy) {
         // Simulate a rollout with uniform random policy and likewise for opponent.
         // As we simulate, we want to update the game tree. Each node of the tree
         // stores:
