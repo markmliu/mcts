@@ -49,10 +49,13 @@ public:
     for (int i = 0; i < valid_actions.size(); ++i) {
       std::cout << i << ": " << valid_actions[i].toString() << std::endl;
     }
-    int user_selected_index;
+    int user_selected_index = -1;
     std::cin >> user_selected_index;
-    assert(user_selected_index >= 0 &&
-           user_selected_index < valid_actions.size());
+    while (user_selected_index < 0 ||
+           user_selected_index >= valid_actions.size()) {
+        std::cout << "User input out of range, try again. " << std::endl;
+        std::cin >> user_selected_index;
+    }
     return valid_actions[user_selected_index];
   }
 };
