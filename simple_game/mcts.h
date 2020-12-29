@@ -16,13 +16,16 @@ public:
                                     state(state_) {}
         int num_rollouts_involved;
         double total_reward_from_here;
-        std::map<Action, Node> children;
+        std::map<Action, Node*> children;
 
         // let's store the board in the node as well for visualization.
         State state;
     };
 
-    MCTS() : root(Node(State())) {}
+    MCTS() {
+        nodes.insert(std::make_pair(State(), Node(State())));
+        root = &(nodes.at(State()));
+    }
 
     void train(Game<State,Action>* game) {
         auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
@@ -85,17 +88,23 @@ public:
             current->total_reward_from_here += total_rollout_reward;
         };
 
-        Node* current = &root;
+        Node* current = root;
         updateNode(current);
 
         // Go through the rollout history and update node values for each one.
         for (const auto& buffer : rollout_history) {
-            const Action& action = buffer.action;
-            // This should create a child if one didn't already exist.
-            if (current->children.find(action) == current->children.end()) {
-                current->children.insert(std::make_pair(action, Node(buffer.state)));
+            // Create the node if it doesn't exist.
+            if (nodes.find(buffer.state) == nodes.end()) {
+                nodes.insert(std::make_pair(buffer.state,Node(buffer.state)));
             }
-            Node& next = current->children.at(action);
+
+            // Update the parent node to point to the newly created node, if it does not already.
+            const Action& action = buffer.action;
+            if (current->children.find(action) == current->children.end()) {
+                current->children.insert(std::make_pair(action, &nodes.at(buffer.state)));
+            }
+
+            Node& next = nodes.at(buffer.state);
             updateNode(&next);
             current = &next;
 
@@ -105,7 +114,7 @@ public:
     void renderTree(int max_depth) {
         // how to display the tree? maybe with a BFS
         std::queue<std::pair<int, const Node*>> queue;
-        queue.push(std::make_pair(0, &root));
+        queue.push(std::make_pair(0, root));
         while (!queue.empty()) {
             std::pair<int, const Node*> depth_top = queue.front();
             int depth = depth_top.first;
@@ -120,14 +129,15 @@ public:
             std::cout << "num rollouts: " << top->num_rollouts_involved << std::endl;
             std::cout << "reward: " << top->total_reward_from_here << std::endl;
             for (const auto& action_child : top->children) {
-                const Node* child = &action_child.second;
+                const Node* child = action_child.second;
                 queue.push(std::make_pair(depth+1, child));
             }
         }
     }
 
 private:
-    Node root;
+    std::map<State, Node> nodes;
+    Node* root;
     RandomValidPolicy<State,Action> us;
     RandomValidPolicy<State,Action> them;
 };

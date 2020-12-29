@@ -12,11 +12,16 @@ struct TTTState {
     std::array<char, 9> board;
     // start off as x's turn, flip b/w x and o.
     bool x_turn = true;
+
+    bool operator<(const TTTState& rhs) const {
+        return std::tie(board, x_turn) < std::tie(rhs.board, rhs.x_turn);
+    }
 };
 
 struct TTTAction {
     TTTAction(int board_position_);
 
+    // Needed for use as key in map
     bool operator<(const TTTAction& rhs) const {
         return board_position < rhs.board_position;
     }

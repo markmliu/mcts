@@ -10,7 +10,7 @@ public:
     virtual ~Policy() = default;
 };
 
-// Select a random "valid" policy
+// RandomValidPolicy: Select a random "valid" policy
 template <class State, class Action> class RandomValidPolicy : public Policy<State, Action> {
 public:
     RandomValidPolicy() {
@@ -32,7 +32,7 @@ private:
 
 };
 
-// Tells user the list of valid inputs, and prompts user for a choice.
+// UserInputPolicy: Tells user the list of valid inputs, and prompts user for a choice.
 template <class State, class Action> class UserInputPolicy : public Policy<State, Action> {
 public:
     Action act(const Game<State,Action>* game) override {

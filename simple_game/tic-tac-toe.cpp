@@ -25,7 +25,6 @@ bool isThreeInARow(const std::array<char, 9>& board, char c) {
         }
         // every pos in line is 'c'
         if (!line_broken) {
-            std::cout << "game over on indices: " << line[0] << "," << line[1] << "," << line[2] << std::endl;
             return true;
         }
     }
@@ -99,7 +98,6 @@ bool TicTacToe::isTerminal() const {
     bool is_terminal =  isThreeInARow(state.board, 'x')
         || isThreeInARow(state.board, 'o')
         || numFreeSpaces(state.board) == 0;
-    std::cout << "game is terminal: " << is_terminal << std::endl;
     return is_terminal;
 }
 
