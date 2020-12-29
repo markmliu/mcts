@@ -30,6 +30,24 @@ private:
 };
 
 TEST_CASE("Factorials are computed", "[factorial]") {
+  // Make a game where x wins and make sure the tree is updated correctly.
+  //
+  //  x3, x7, x5
+  //      x1, o2
+  //  o6,   , o4
+  std::vector<Action> self_moves = {Action(4), Action(0), Action(2), Action(1)};
+  std::vector<Action> opponent_moves = {Action(5), Action(8), Action(6)};
+  std::unique_ptr<Policy<State, Action>> self_policy =
+      std::make_unique<HardCodedPolicy<State, Action>>(std::move(self_moves));
+  std::unique_ptr<Policy<State, Action>> opponent_policy =
+      std::make_unique<HardCodedPolicy<State, Action>>(
+          std::move(opponent_moves));
+
+  MCTS<State, Action> mcts;
+  std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
+  auto rollout_history =
+      mcts.rollout(game.get(), self_policy.get(), opponent_policy.get());
+
   // REQUIRE(Factorial(1) == 1);
   // REQUIRE(Factorial(2) == 2);
   // REQUIRE(Factorial(3) == 6);

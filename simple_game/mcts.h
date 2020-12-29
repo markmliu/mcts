@@ -20,6 +20,18 @@ public:
     State state;
   };
 
+  // Vector of these can be used to store history of a rollout.
+  struct HistoryBuffer {
+    HistoryBuffer(Action action_, double reward_, const State &state_)
+        : action(action_), reward(reward_), state(state_) {}
+    // Action that created this node
+    Action action;
+    // Reward after taking action
+    double reward;
+    // State after taking action
+    State state;
+  };
+
   MCTS() {
     nodes_.insert(std::make_pair(State(), Node(State())));
     root_ = &(nodes_.at(State()));
@@ -31,8 +43,9 @@ public:
     rollout(game, self_policy.get(), opponent_policy.get());
   }
 
-  void rollout(Game<State, Action> *game, Policy<State, Action> *self_policy,
-               Policy<State, Action> *opponent_policy) {
+  std::vector<HistoryBuffer> rollout(Game<State, Action> *game,
+                                     Policy<State, Action> *self_policy,
+                                     Policy<State, Action> *opponent_policy) {
     // Simulate a rollout with uniform random policy and likewise for opponent.
     // As we simulate, we want to update the game tree. Each node of the tree
     // stores:
@@ -43,17 +56,6 @@ public:
 
     // 1. Do a playthrough, keeping track of the actions that were played.
     game->reset();
-
-    struct HistoryBuffer {
-      HistoryBuffer(Action action_, double reward_, const State &state_)
-          : action(action_), reward(reward_), state(state_) {}
-      // Action that created this node
-      Action action;
-      // Reward after taking action
-      double reward;
-      // State after taking action
-      State state;
-    };
 
     std::vector<HistoryBuffer> rollout_history;
 
@@ -103,6 +105,7 @@ public:
       updateNode(&next);
       current = &next;
     }
+    return rollout_history;
   }
 
   void renderTree(int max_depth) {

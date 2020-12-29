@@ -38,12 +38,19 @@ TTTState::TTTState()
 
 void TTTState::render() const {
   auto char_to_display = [](char c, int idx) {
-      if (c == 'x' || c == 'o') return std::string(1,c);
-      return std::to_string(idx);
+    if (c == 'x' || c == 'o')
+      return std::string(1, c);
+    return std::to_string(idx);
   };
-  std::cout << char_to_display(board[0], 0) << "," << char_to_display(board[1], 1) << "," << char_to_display(board[2], 2) << std::endl;
-  std::cout << char_to_display(board[3], 3) << "," << char_to_display(board[4], 4) << "," << char_to_display(board[5], 5) << std::endl;
-  std::cout << char_to_display(board[6], 6) << "," << char_to_display(board[7], 7) << "," << char_to_display(board[8], 8) << std::endl;
+  std::cout << char_to_display(board[0], 0) << ","
+            << char_to_display(board[1], 1) << ","
+            << char_to_display(board[2], 2) << std::endl;
+  std::cout << char_to_display(board[3], 3) << ","
+            << char_to_display(board[4], 4) << ","
+            << char_to_display(board[5], 5) << std::endl;
+  std::cout << char_to_display(board[6], 6) << ","
+            << char_to_display(board[7], 7) << ","
+            << char_to_display(board[8], 8) << std::endl;
   std::cout << "_____________________________________" << std::endl;
 }
 

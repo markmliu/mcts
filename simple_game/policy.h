@@ -53,8 +53,8 @@ public:
     std::cin >> user_selected_index;
     while (user_selected_index < 0 ||
            user_selected_index >= valid_actions.size()) {
-        std::cout << "User input out of range, try again. " << std::endl;
-        std::cin >> user_selected_index;
+      std::cout << "User input out of range, try again. " << std::endl;
+      std::cin >> user_selected_index;
     }
     return valid_actions[user_selected_index];
   }
