@@ -43,10 +43,13 @@ public:
     root_ = &(nodes_.at(State()));
   }
 
-  void train(Game<State, Action> *game) {
+  // TODO: allow training with non-random self policy
+  void train(Game<State, Action> *game, int num_rollouts = 1) {
     auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
     auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
-    rollout(game, self_policy.get(), opponent_policy.get());
+    for (int i = 0; i < num_rollouts; i++) {
+      rollout(game, self_policy.get(), opponent_policy.get());
+    }
   }
 
   // Simulate a rollout with 'self_policy' and 'opponent_policy'.
@@ -55,7 +58,8 @@ public:
   std::vector<HistoryFrame> rollout(Game<State, Action> *game,
                                     Policy<State, Action> *self_policy,
                                     Policy<State, Action> *opponent_policy,
-                                    bool update_weights = true) {
+                                    bool update_weights = true,
+                                    bool verbose = false) {
     // As we simulate, we want to update the game tree. Each node of the tree
     // stores:
     // - how many rollouts have passed through this node
@@ -78,7 +82,10 @@ public:
       }();
 
       double reward = game->simulate(action); // unused.
-      game->render();
+      // TODO: wrap this in a toggle-able logger
+      if (verbose) {
+        game->render();
+      }
       rollout_history.emplace_back(action, reward, game->getCurrentState());
     }
 
@@ -90,8 +97,6 @@ public:
     double total_rollout_reward = std::accumulate(
         rollout_history.begin(), rollout_history.end(), 0.0,
         [&](double a, const HistoryFrame &el) { return a + el.reward; });
-    std::cout << "calculating total reward: " << total_rollout_reward
-              << std::endl;
     auto updateNode = [&](Node *current) {
       current->num_rollouts_involved++;
       current->total_reward_from_here += total_rollout_reward;
