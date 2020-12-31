@@ -18,7 +18,10 @@ int main() {
   game->reset();
   // play against it!
   auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
-  mcts.rollout(game.get(), &mcts, opponent_policy.get());
+
+  // this is a bit janky, using mcts as its own policy.
+  mcts.rollout(game.get(), &mcts, opponent_policy.get(),
+               /*update_weights=*/false);
 
   return 0;
 };

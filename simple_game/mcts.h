@@ -50,7 +50,8 @@ public:
   }
 
   // Simulate a rollout with 'self_policy' and 'opponent_policy'.
-  // If 'update_weights' is true, keep track of reward and update tree to reflect it.
+  // If 'update_weights' is true, keep track of reward and update tree to
+  // reflect it.
   std::vector<HistoryFrame> rollout(Game<State, Action> *game,
                                     Policy<State, Action> *self_policy,
                                     Policy<State, Action> *opponent_policy,
@@ -82,7 +83,7 @@ public:
     }
 
     if (!update_weights) {
-        return rollout_history;
+      return rollout_history;
     }
 
     // 2. Go through the rollout history and update node values for each one.
