@@ -17,10 +17,8 @@ int main() {
 
   game->reset();
   // play against it!
-  // TODO: should use a greedy policy here
-  auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
   auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
-  mcts.rollout(game.get(), self_policy.get(), opponent_policy.get());
+  mcts.rollout(game.get(), &mcts, opponent_policy.get());
 
   return 0;
 };

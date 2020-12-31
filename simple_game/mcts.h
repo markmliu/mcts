@@ -49,10 +49,12 @@ public:
     rollout(game, self_policy.get(), opponent_policy.get());
   }
 
+  // Simulate a rollout with 'self_policy' and 'opponent_policy'.
+  // If 'update_weights' is true, keep track of reward and update tree to reflect it.
   std::vector<HistoryFrame> rollout(Game<State, Action> *game,
                                     Policy<State, Action> *self_policy,
-                                    Policy<State, Action> *opponent_policy) {
-    // Simulate a rollout with uniform random policy and likewise for opponent.
+                                    Policy<State, Action> *opponent_policy,
+                                    bool update_weights = true) {
     // As we simulate, we want to update the game tree. Each node of the tree
     // stores:
     // - how many rollouts have passed through this node
@@ -79,6 +81,11 @@ public:
       rollout_history.emplace_back(action, reward, game->getCurrentState());
     }
 
+    if (!update_weights) {
+        return rollout_history;
+    }
+
+    // 2. Go through the rollout history and update node values for each one.
     double total_rollout_reward = std::accumulate(
         rollout_history.begin(), rollout_history.end(), 0.0,
         [&](double a, const HistoryFrame &el) { return a + el.reward; });
@@ -92,7 +99,6 @@ public:
     Node *current = root_;
     updateNode(current);
 
-    // Go through the rollout history and update node values for each one.
     for (const auto &frame : rollout_history) {
       // Create the node if it doesn't exist.
       if (nodes_.find(frame.state) == nodes_.end()) {
