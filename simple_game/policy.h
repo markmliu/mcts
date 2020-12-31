@@ -6,6 +6,10 @@
 #include <iostream>
 #include <random>
 
+// TODO: it might not really make that much sense to have Policy be a separate
+// interface from the class that learns the value function, since a normal
+// policy will use the value function to some degree.
+
 template <class State, class Action> class Policy {
 public:
   virtual Action act(const Game<State, Action> *game) = 0;

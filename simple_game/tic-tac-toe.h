@@ -37,7 +37,9 @@ class TicTacToe : public Game<TTTState, TTTAction> {
 public:
   TicTacToe();
   void reset() override;
-  double simulate(TTTAction action) override;
+  double simulate(const TTTAction &action) override;
+  std::pair<TTTState, double>
+  simulateDry(const TTTState &state, const TTTAction &action) const override;
   std::vector<TTTAction> getValidActions() const override;
   const TTTState &getCurrentState() const override;
   bool isOurTurn() const override;
@@ -46,5 +48,5 @@ public:
   ~TicTacToe() = default;
 
 private:
-  TTTState state;
+  TTTState state_;
 };

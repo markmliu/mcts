@@ -58,43 +58,64 @@ TTTAction::TTTAction(int board_position_) : board_position(board_position_) {}
 
 TicTacToe::TicTacToe() {}
 
-void TicTacToe::reset() { state = TTTState(); }
+void TicTacToe::reset() { state_ = TTTState(); }
 
-double TicTacToe::simulate(TTTAction action) {
+double TicTacToe::simulate(const TTTAction &action) {
   // Must place at empty square
-  assert(state.board[action.board_position] == '_');
+  assert(state_.board[action.board_position] == '_');
 
-  char char_to_place = state.x_turn ? 'x' : 'o';
-  state.board[action.board_position] = char_to_place;
-  state.x_turn = !state.x_turn;
+  char char_to_place = state_.x_turn ? 'x' : 'o';
+  state_.board[action.board_position] = char_to_place;
+  state_.x_turn = !state_.x_turn;
 
-  if (isThreeInARow(state.board, 'x')) {
+  if (isThreeInARow(state_.board, 'x')) {
     return 1.0;
-  } else if (isThreeInARow(state.board, 'o')) {
+  } else if (isThreeInARow(state_.board, 'o')) {
     return -1.0;
   }
   return 0.0;
 }
 
+// TODO: can we avoid code duplication between simulate and simulateDry without
+// extra copies for simulate?
+std::pair<TTTState, double>
+TicTacToe::simulateDry(const TTTState &state, const TTTAction &action) const {
+  // Must place at empty square
+  assert(state.board[action.board_position] == '_');
+
+  char char_to_place = state.x_turn ? 'x' : 'o';
+
+  TTTState updated_state = state;
+  updated_state.board[action.board_position] = char_to_place;
+  updated_state.x_turn = !state.x_turn;
+
+  if (isThreeInARow(state.board, 'x')) {
+    return std::make_pair(updated_state, 1.0);
+  } else if (isThreeInARow(state.board, 'o')) {
+    return std::make_pair(updated_state, -1.0);
+  }
+  return std::make_pair(updated_state, 0.0);
+}
+
 std::vector<TTTAction> TicTacToe::getValidActions() const {
   std::vector<TTTAction> valid_actions;
   for (int i = 0; i < 9; i++) {
-    if (state.board[i] == '_') {
+    if (state_.board[i] == '_') {
       valid_actions.push_back(TTTAction(i));
     }
   }
   return valid_actions;
 }
 
-const TTTState &TicTacToe::getCurrentState() const { return state; }
+const TTTState &TicTacToe::getCurrentState() const { return state_; }
 
-bool TicTacToe::isOurTurn() const { return state.x_turn; }
+bool TicTacToe::isOurTurn() const { return state_.x_turn; }
 
 bool TicTacToe::isTerminal() const {
-  bool is_terminal = isThreeInARow(state.board, 'x') ||
-                     isThreeInARow(state.board, 'o') ||
-                     numFreeSpaces(state.board) == 0;
+  bool is_terminal = isThreeInARow(state_.board, 'x') ||
+                     isThreeInARow(state_.board, 'o') ||
+                     numFreeSpaces(state_.board) == 0;
   return is_terminal;
 }
 
-void TicTacToe::render() const { state.render(); }
+void TicTacToe::render() const { state_.render(); }

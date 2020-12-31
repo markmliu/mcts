@@ -1,3 +1,6 @@
+#ifndef MCTS_MCTS
+#define MCTS_MCTS
+
 #include "game.h"
 #include "policy.h"
 
@@ -7,7 +10,11 @@
 #include <optional>
 #include <queue>
 
-template <class State, class Action> class MCTS {
+// reward for a state which we haven't explored yet. Higher number here will
+// result in a more optimistic policy.
+constexpr double UNEXPLORED_STATE_REWARD = 0.0;
+
+template <class State, class Action> class MCTS : public Policy<State, Action> {
 public:
   struct Node {
     Node(const State &state_)
@@ -15,7 +22,6 @@ public:
     int num_rollouts_involved;
     double total_reward_from_here;
     std::map<Action, Node *> children;
-
     // let's store the board in the node as well for visualization.
     State state;
   };
@@ -135,10 +141,49 @@ public:
     }
   }
 
+  // Greedily choose "best" action
+  Action act(const Game<State, Action> *game) override {
+    assert(!game->isTerminal());
+    std::vector<Action> valid_actions = game->getValidActions();
+    assert(!valid_actions.empty());
+
+    // find the "best" state
+    const State &current_state = game->getCurrentState();
+    double best_value_seen = std::numeric_limits<double>::lowest();
+    int best_idx = -1;
+    for (int i = 0; i < valid_actions.size(); i++) {
+      const Action &action = valid_actions[i];
+      // TODO: should i be using the reward from the dry simulation here? Right
+      // now I'm just using the estimated value from my value function.
+      const std::pair<State, double> state_reward =
+          game->simulateDry(current_state, action);
+      double state_value = getExpectedReward(state_reward.first);
+      if (state_value > best_value_seen) {
+        best_idx = i;
+        best_value_seen = state_value;
+      }
+    }
+    assert(best_idx >= 0);
+    return valid_actions[best_idx];
+  };
+
   // For introspection
   const std::map<State, Node> &getNodes() { return nodes_; }
 
 private:
+  double getExpectedReward(const State &state) {
+    if (nodes_.find(state) == nodes_.end()) {
+      return UNEXPLORED_STATE_REWARD;
+    }
+    const Node &node = nodes_.at(state);
+    // If a state gets constructed, it probably should have at least one
+    // rollout.
+    assert(node.num_rollouts_involved != 0);
+    return (node.total_reward_from_here / node.num_rollouts_involved);
+  }
+
   std::map<State, Node> nodes_;
   Node *root_;
 };
+
+#endif // MCTS_MCTS

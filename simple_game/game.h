@@ -7,7 +7,10 @@
 template <class State, class Action> class Game {
 public:
   virtual void reset() = 0;
-  virtual double simulate(Action a) = 0;
+  virtual double simulate(const Action &a) = 0;
+  // Like above, but doesn't actually modify state
+  virtual std::pair<State, double> simulateDry(const State &state,
+                                               const Action &a) const = 0;
   virtual std::vector<Action> getValidActions() const = 0;
   virtual const State &getCurrentState() const = 0;
 
