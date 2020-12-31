@@ -61,9 +61,4 @@ TEST_CASE("Basic rollout backprop is working", "[mcts]") {
     // Each frame should have a positive reward since we won.
     REQUIRE(nodes.at(frame.state).total_reward_from_here == Approx(1.0));
   }
-
-  // REQUIRE(Factorial(1) == 1);
-  // REQUIRE(Factorial(2) == 2);
-  // REQUIRE(Factorial(3) == 6);
-  // REQUIRE(Factorial(10) == 3628800);
 }
