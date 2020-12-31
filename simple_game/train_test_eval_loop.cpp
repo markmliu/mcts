@@ -74,5 +74,5 @@ int main() {
   plt::named_plot("loss_percents", xs, loss_percents);
   plt::named_plot("draw_percents", xs, draw_percents);
   plt::legend();
-  plt::save("./training curve.png");
+  plt::save("./training_curve.png");
 };
