@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <queue>
+#include <random>
 
 // reward for a state which we haven't explored yet. Higher number here will
 // result in a more optimistic policy.
@@ -41,15 +42,28 @@ public:
   MCTS() {
     nodes_.insert(std::make_pair(State(), Node(State())));
     root_ = &(nodes_.at(State()));
+    eng_ =  std::default_random_engine(rd_()); // seed the generator
+    distr_= std::uniform_real_distribution<float>(0.0,1.0);
   }
 
-  // TODO: allow training with non-random self policy
-  void train(Game<State, Action> *game, int num_rollouts = 1) {
-    auto self_policy = std::make_unique<RandomValidPolicy<State, Action>>();
+  // training with eps-greedy policy for self.
+  void train(Game<State, Action> *game, int num_rollouts = 1, double eps = 1.0) {
+    // eps is the fraction of the time that we choose random policy.
+    assert(eps <= 1.0 && eps >= 0.0);
+    eps_ = eps;
     auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
     for (int i = 0; i < num_rollouts; i++) {
-      rollout(game, self_policy.get(), opponent_policy.get());
+      // pass self as policy
+      rollout(game, this, opponent_policy.get());
     }
+  }
+
+
+  std::vector<HistoryFrame> evaluate(Game<State, Action> *game,
+                                    Policy<State, Action> *opponent_policy) {
+    // totally greedy
+    eps_ = 0.0;
+    return rollout(game, this, opponent_policy, /*update_weight=*/false, /*verbose=*/false);
   }
 
   // Simulate a rollout with 'self_policy' and 'opponent_policy'.
@@ -159,7 +173,22 @@ public:
     std::vector<Action> valid_actions = game->getValidActions();
     assert(!valid_actions.empty());
 
-    // find the "best" state
+    // eps_ fraction of the time, act randomly.
+    float chance = distr_(eng_);
+    if (chance < eps_) {
+      // do something random!
+      return random_policy_.act(game);
+    } else {
+
+      // find the "best" state
+      int best_idx = getBestActionIdx(valid_actions, game);
+      assert(best_idx >= 0);
+      return valid_actions[best_idx];
+    }
+  };
+
+  int getBestActionIdx(const std::vector<Action>& valid_actions,
+		       const Game<State, Action> * game) {
     const State &current_state = game->getCurrentState();
     double best_value_seen = std::numeric_limits<double>::lowest();
     int best_idx = -1;
@@ -168,16 +197,16 @@ public:
       // TODO: should i be using the reward from the dry simulation here? Right
       // now I'm just using the estimated value from my value function.
       const std::pair<State, double> state_reward =
-          game->simulateDry(current_state, action);
+	game->simulateDry(current_state, action);
       double state_value = getExpectedReward(state_reward.first);
       if (state_value > best_value_seen) {
         best_idx = i;
         best_value_seen = state_value;
       }
     }
-    assert(best_idx >= 0);
-    return valid_actions[best_idx];
+    return best_idx;
   };
+
 
   // For introspection
   const std::map<State, Node> &getNodes() { return nodes_; }
@@ -193,6 +222,15 @@ private:
     assert(node.num_rollouts_involved != 0);
     return (node.total_reward_from_here / node.num_rollouts_involved);
   }
+
+  // When running this->act(), use eps-greedy policy.
+  // TODO: don't like that eps_ is a stateful thing, let's remove this if possible.
+  double eps_;
+  std::random_device rd_; // obtain a random number from hardware
+  std::default_random_engine eng_;
+  std::uniform_real_distribution<float> distr_;
+  RandomValidPolicy<State, Action> random_policy_;
+
 
   std::map<State, Node> nodes_;
   Node *root_;

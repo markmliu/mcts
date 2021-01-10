@@ -17,8 +17,7 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
   for (int i = 0; i < num_runs; i++) {
     // Infer game type from reward.
-    double final_reward = mcts->rollout(game, mcts, opponent_policy.get(),
-                                        /*update_weights=*/false)
+    double final_reward = mcts->evaluate(game, opponent_policy.get())
                               .back()
                               .reward;
     if (final_reward == 1.0) {
