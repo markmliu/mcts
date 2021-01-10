@@ -33,7 +33,9 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
           (double)num_draws / num_runs};
 }
 
-int main() {
+namespace plt = matplotlibcpp;
+
+void train_test_plot(double eps = 1.0) {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   MCTS<State, Action> mcts;
 
@@ -65,13 +67,17 @@ int main() {
     loss_percents.push_back(evaluation[1]);
     draw_percents.push_back(evaluation[2]);
   }
+  plt::named_plot("win_percents_eps_"+std::to_string(eps), xs, win_percents);
+  plt::named_plot("loss_percents_"+std::to_string(eps), xs, loss_percents);
+  plt::named_plot("draw_percents_"+std::to_string(eps), xs, draw_percents);
+}
 
-  namespace plt = matplotlibcpp;
+
+int main() {
+  train_test_plot(1.0);
+  train_test_plot(0.05);
   plt::title("Tic-tac-toe MCTS performance against random opponent");
   plt::xlabel("Number of rollouts");
-  plt::named_plot("win_percents", xs, win_percents);
-  plt::named_plot("loss_percents", xs, loss_percents);
-  plt::named_plot("draw_percents", xs, draw_percents);
   plt::legend();
   plt::save("./training_curve.png");
 };
