@@ -1,6 +1,7 @@
 #include "matplotlibcpp.h"
 #include "mcts.h"
 #include "tic-tac-toe.h"
+#include "eps_scheduler.h"
 
 typedef TTTState State;
 typedef TTTAction Action;
@@ -35,7 +36,7 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
 namespace plt = matplotlibcpp;
 
-void train_test_plot(double eps = 1.0) {
+void train_test_plot(EpsilonScheduler* sched) {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   MCTS<State, Action> mcts;
 
@@ -57,7 +58,7 @@ void train_test_plot(double eps = 1.0) {
   draw_percents.push_back(evaluation[2]);
 
   for (int i = 0; i < 20; i++) {
-    mcts.train(game.get(), NUM_ROLLOUTS_PER_TRAIN);
+    mcts.train(game.get(), NUM_ROLLOUTS_PER_TRAIN, sched->getEpsilon());
     std::cout << "finishing training iteration: " << i << std::endl;
     num_training_rollouts += NUM_ROLLOUTS_PER_TRAIN;
     xs.push_back((double)num_training_rollouts);
@@ -67,15 +68,21 @@ void train_test_plot(double eps = 1.0) {
     loss_percents.push_back(evaluation[1]);
     draw_percents.push_back(evaluation[2]);
   }
-  plt::named_plot("win_percents_eps_"+std::to_string(eps), xs, win_percents);
-  plt::named_plot("loss_percents_"+std::to_string(eps), xs, loss_percents);
-  plt::named_plot("draw_percents_"+std::to_string(eps), xs, draw_percents);
+  plt::named_plot("win_percents_eps_"+sched->name(), xs, win_percents);
+  plt::named_plot("loss_percents_"+sched->name(), xs, loss_percents);
+  plt::named_plot("draw_percents_"+sched->name(), xs, draw_percents);
 }
 
 
 int main() {
-  train_test_plot(1.0);
-  train_test_plot(0.05);
+  {
+    FixedEpsilonScheduler sched(1.0);
+    train_test_plot(&sched);
+  }
+  {
+    FixedEpsilonScheduler sched(0.05);
+    train_test_plot(&sched);
+  }
   plt::title("Tic-tac-toe MCTS performance against random opponent");
   plt::xlabel("Number of rollouts");
   plt::legend();
