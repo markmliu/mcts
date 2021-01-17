@@ -1,6 +1,5 @@
 #ifndef MCTS_MCTS
 #define MCTS_MCTS
-
 #include "game.h"
 #include "policy.h"
 
@@ -98,15 +97,11 @@ public:
 
     std::vector<HistoryFrame> rollout_history;
 
-    if (config.opponent_goes_first) {
-      // have opponent move first.
-      const Action action = opponent_policy->act(game);
-      game->simulate(action);
-    }
+    const int player_num = config.opponent_goes_first ? 1 : 0;
 
     while (!game->isTerminal()) {
       Action action = [&]() {
-        if (game->isOurTurn()) {
+        if (game->turn() == player_num) {
           return self_policy->act(game);
         } else {
           return opponent_policy->act(game);
@@ -115,7 +110,7 @@ public:
 
       // TODO: Should we really be using the reward and learning from both our
       // own and opponent's actions?
-      double reward = game->simulate(action);
+      double reward = game->simulate(action).at(player_num);
       // TODO: wrap this in a toggle-able logger
       if (config.verbose) {
         game->render();
@@ -216,7 +211,7 @@ public:
       const Action &action = valid_actions[i];
       // TODO: should i be using the reward from the dry simulation here? Right
       // now I'm just using the estimated value from my value function.
-      const std::pair<State, double> state_reward =
+      const std::pair<State, RewardMap> state_reward =
           game->simulateDry(current_state, action);
       double state_value = getExpectedReward(state_reward.first);
       if (state_value > best_value_seen) {

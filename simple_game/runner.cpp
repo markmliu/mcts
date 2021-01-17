@@ -19,9 +19,12 @@ int main() {
   // play against it!
   auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
 
-  // this is a bit janky, using mcts as its own policy.
-  mcts.rollout(game.get(), &mcts, opponent_policy.get(),
-               /*update_weights=*/false);
+  // Let's play against it with us as first player!
+  MCTS<State, Action>::RolloutConfig config;
+  config.update_weights = false;
+  config.verbose = true;
+  config.opponent_goes_first = true;
+  mcts.rollout(game.get(), &mcts, opponent_policy.get(), config);
 
   return 0;
 };

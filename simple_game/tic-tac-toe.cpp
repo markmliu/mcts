@@ -60,7 +60,7 @@ TicTacToe::TicTacToe() {}
 
 void TicTacToe::reset() { state_ = TTTState(); }
 
-double TicTacToe::simulate(const TTTAction &action) {
+RewardMap TicTacToe::simulate(const TTTAction &action) {
   // Must place at empty square
   assert(state_.board[action.board_position] == '_');
 
@@ -68,17 +68,19 @@ double TicTacToe::simulate(const TTTAction &action) {
   state_.board[action.board_position] = char_to_place;
   state_.x_turn = !state_.x_turn;
 
+  // TODO: since policy might be playing as either player, should not hard-code
+  // assumption here that x winning is positive score.
   if (isThreeInARow(state_.board, 'x')) {
-    return 1.0;
+    return {{0, 1.0}, {1, -1.0}};
   } else if (isThreeInARow(state_.board, 'o')) {
-    return -1.0;
+    return {{0, -1.0}, {1, 1.0}};
   }
-  return 0.0;
+  return {{0, 0.0}, {1, 0.0}};
 }
 
 // TODO: can we avoid code duplication between simulate and simulateDry without
 // extra copies for simulate?
-std::pair<TTTState, double>
+std::pair<TTTState, RewardMap>
 TicTacToe::simulateDry(const TTTState &state, const TTTAction &action) const {
   // Must place at empty square
   assert(state.board[action.board_position] == '_');
@@ -90,11 +92,11 @@ TicTacToe::simulateDry(const TTTState &state, const TTTAction &action) const {
   updated_state.x_turn = !state.x_turn;
 
   if (isThreeInARow(state.board, 'x')) {
-    return std::make_pair(updated_state, 1.0);
+    return std::make_pair(updated_state, TwoPlayerFirstPlayerWinsReward);
   } else if (isThreeInARow(state.board, 'o')) {
-    return std::make_pair(updated_state, -1.0);
+    return std::make_pair(updated_state, TwoPlayerSecondPlayerWinsReward);
   }
-  return std::make_pair(updated_state, 0.0);
+  return std::make_pair(updated_state, TwoPlayerNobodyWinsReward);
 }
 
 std::vector<TTTAction> TicTacToe::getValidActions() const {
@@ -109,7 +111,11 @@ std::vector<TTTAction> TicTacToe::getValidActions() const {
 
 const TTTState &TicTacToe::getCurrentState() const { return state_; }
 
-bool TicTacToe::isOurTurn() const { return state_.x_turn; }
+int TicTacToe::turn() const {
+  if (state_.x_turn)
+    return 0;
+  return 1;
+}
 
 bool TicTacToe::isTerminal() const {
   bool is_terminal = isThreeInARow(state_.board, 'x') ||
