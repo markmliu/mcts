@@ -42,29 +42,42 @@ public:
   MCTS() {
     nodes_.insert(std::make_pair(State(), Node(State())));
     root_ = &(nodes_.at(State()));
-    eng_ =  std::default_random_engine(rd_()); // seed the generator
-    distr_= std::uniform_real_distribution<float>(0.0,1.0);
+    eng_ = std::default_random_engine(rd_()); // seed the generator
+    distr_ = std::uniform_real_distribution<float>(0.0, 1.0);
   }
 
   // training with eps-greedy policy for self.
-  void train(Game<State, Action> *game, int num_rollouts = 1, double eps = 1.0) {
+  void train(Game<State, Action> *game, int num_rollouts = 1,
+             double eps = 1.0) {
     // eps is the fraction of the time that we choose random policy.
     assert(eps <= 1.0 && eps >= 0.0);
     eps_ = eps;
+    RolloutConfig config;
+    config.update_weights = true;
     auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
     for (int i = 0; i < num_rollouts; i++) {
       // pass self as policy
-      rollout(game, this, opponent_policy.get());
+      rollout(game, this, opponent_policy.get(), config);
     }
   }
 
-
   std::vector<HistoryFrame> evaluate(Game<State, Action> *game,
-                                    Policy<State, Action> *opponent_policy) {
+                                     Policy<State, Action> *opponent_policy) {
     // totally greedy
     eps_ = 0.0;
-    return rollout(game, this, opponent_policy, /*update_weight=*/false, /*verbose=*/false);
+    RolloutConfig config;
+    config.update_weights = false;
+    config.verbose = false;
+    // TODO: let us evaluate with opponent going first if we want.
+    config.opponent_goes_first = false;
+    return rollout(game, this, opponent_policy, config);
   }
+
+  struct RolloutConfig {
+    bool update_weights;
+    bool opponent_goes_first;
+    bool verbose;
+  };
 
   // Simulate a rollout with 'self_policy' and 'opponent_policy'.
   // If 'update_weights' is true, keep track of reward and update tree to
@@ -72,8 +85,7 @@ public:
   std::vector<HistoryFrame> rollout(Game<State, Action> *game,
                                     Policy<State, Action> *self_policy,
                                     Policy<State, Action> *opponent_policy,
-                                    bool update_weights = true,
-                                    bool verbose = false) {
+                                    const RolloutConfig &config) {
     // As we simulate, we want to update the game tree. Each node of the tree
     // stores:
     // - how many rollouts have passed through this node
@@ -86,6 +98,12 @@ public:
 
     std::vector<HistoryFrame> rollout_history;
 
+    if (config.opponent_goes_first) {
+      // have opponent move first.
+      const Action action = opponent_policy->act(game);
+      game->simulate(action);
+    }
+
     while (!game->isTerminal()) {
       Action action = [&]() {
         if (game->isOurTurn()) {
@@ -95,15 +113,17 @@ public:
         }
       }();
 
-      double reward = game->simulate(action); // unused.
+      // TODO: Should we really be using the reward and learning from both our
+      // own and opponent's actions?
+      double reward = game->simulate(action);
       // TODO: wrap this in a toggle-able logger
-      if (verbose) {
+      if (config.verbose) {
         game->render();
       }
       rollout_history.emplace_back(action, reward, game->getCurrentState());
     }
 
-    if (!update_weights) {
+    if (!config.update_weights) {
       return rollout_history;
     }
 
@@ -187,8 +207,8 @@ public:
     }
   };
 
-  int getBestActionIdx(const std::vector<Action>& valid_actions,
-		       const Game<State, Action> * game) {
+  int getBestActionIdx(const std::vector<Action> &valid_actions,
+                       const Game<State, Action> *game) {
     const State &current_state = game->getCurrentState();
     double best_value_seen = std::numeric_limits<double>::lowest();
     int best_idx = -1;
@@ -197,7 +217,7 @@ public:
       // TODO: should i be using the reward from the dry simulation here? Right
       // now I'm just using the estimated value from my value function.
       const std::pair<State, double> state_reward =
-	game->simulateDry(current_state, action);
+          game->simulateDry(current_state, action);
       double state_value = getExpectedReward(state_reward.first);
       if (state_value > best_value_seen) {
         best_idx = i;
@@ -206,7 +226,6 @@ public:
     }
     return best_idx;
   };
-
 
   // For introspection
   const std::map<State, Node> &getNodes() { return nodes_; }
@@ -224,13 +243,13 @@ private:
   }
 
   // When running this->act(), use eps-greedy policy.
-  // TODO: don't like that eps_ is a stateful thing, let's remove this if possible.
+  // TODO: don't like that eps_ is a stateful thing, let's remove this if
+  // possible.
   double eps_;
   std::random_device rd_; // obtain a random number from hardware
   std::default_random_engine eng_;
   std::uniform_real_distribution<float> distr_;
   RandomValidPolicy<State, Action> random_policy_;
-
 
   std::map<State, Node> nodes_;
   Node *root_;
