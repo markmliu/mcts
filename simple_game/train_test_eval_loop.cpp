@@ -7,8 +7,10 @@ typedef TTTState State;
 typedef TTTAction Action;
 
 // Returns win/loss/draw percentage
-std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
-                                                    Game<State, Action> *game) {
+std::array<double, 3>
+evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
+                              Game<State, Action> *game,
+                              bool opponent_goes_first = false) {
   auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
 
   const int num_runs = 300;
@@ -19,7 +21,9 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
   for (int i = 0; i < num_runs; i++) {
     // Infer game type from reward.
     double final_reward =
-        mcts->evaluate(game, opponent_policy.get()).back().reward;
+        mcts->evaluate(game, opponent_policy.get(), opponent_goes_first)
+            .back()
+            .reward;
     if (final_reward == 1.0) {
       num_wins++;
     } else if (final_reward == 0.0) {
@@ -35,7 +39,8 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
 namespace plt = matplotlibcpp;
 
-void train_test_plot(EpsilonScheduler *sched) {
+void train_test_plot(EpsilonScheduler *sched,
+                     bool opponent_goes_first = false) {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   MCTS<State, Action> mcts;
 
@@ -51,7 +56,7 @@ void train_test_plot(EpsilonScheduler *sched) {
 
   xs.push_back((double)num_training_rollouts);
   std::array<double, 3> evaluation =
-      evaluateAgainstRandomOpponent(&mcts, game.get());
+      evaluateAgainstRandomOpponent(&mcts, game.get(), opponent_goes_first);
   win_percents.push_back(evaluation[0]);
   loss_percents.push_back(evaluation[1]);
   draw_percents.push_back(evaluation[2]);
@@ -62,7 +67,7 @@ void train_test_plot(EpsilonScheduler *sched) {
     num_training_rollouts += NUM_ROLLOUTS_PER_TRAIN;
     xs.push_back((double)num_training_rollouts);
     std::array<double, 3> evaluation =
-        evaluateAgainstRandomOpponent(&mcts, game.get());
+        evaluateAgainstRandomOpponent(&mcts, game.get(), opponent_goes_first);
     win_percents.push_back(evaluation[0]);
     loss_percents.push_back(evaluation[1]);
     draw_percents.push_back(evaluation[2]);
@@ -73,15 +78,26 @@ void train_test_plot(EpsilonScheduler *sched) {
 }
 
 int main() {
+  // {
+  //   FixedEpsilonScheduler sched(1.0);
+  //   train_test_plot(&sched);
+  // }
+  // {
+  //   FixedEpsilonScheduler sched(0.05);
+  //   train_test_plot(&sched);
+  // }
+  // plt::title("Tic-tac-toe MCTS performance against random opponent");
+  // plt::xlabel("Number of rollouts");
+  // plt::legend();
+  // plt::save("./training_curve.png");
+
+  // Let's try plotting with opponent going first
   {
     FixedEpsilonScheduler sched(1.0);
-    train_test_plot(&sched);
+    train_test_plot(&sched, /*opponent_goes_first=*/true);
   }
-  {
-    FixedEpsilonScheduler sched(0.05);
-    train_test_plot(&sched);
-  }
-  plt::title("Tic-tac-toe MCTS performance against random opponent");
+  plt::title(
+      "Tic-tac-toe MCTS performance as second player against random opponent");
   plt::xlabel("Number of rollouts");
   plt::legend();
   plt::save("./training_curve.png");

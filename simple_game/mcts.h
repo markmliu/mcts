@@ -46,13 +46,14 @@ public:
   }
 
   // training with eps-greedy policy for self.
-  void train(Game<State, Action> *game, int num_rollouts = 1,
-             double eps = 1.0) {
+  void train(Game<State, Action> *game, int num_rollouts = 1, double eps = 1.0,
+             bool opponent_goes_first = false) {
     // eps is the fraction of the time that we choose random policy.
     assert(eps <= 1.0 && eps >= 0.0);
     eps_ = eps;
     RolloutConfig config;
     config.update_weights = true;
+    config.opponent_goes_first = opponent_goes_first;
     auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
     for (int i = 0; i < num_rollouts; i++) {
       // pass self as policy
@@ -61,21 +62,21 @@ public:
   }
 
   std::vector<HistoryFrame> evaluate(Game<State, Action> *game,
-                                     Policy<State, Action> *opponent_policy) {
+                                     Policy<State, Action> *opponent_policy,
+                                     bool opponent_goes_first = false) {
     // totally greedy
     eps_ = 0.0;
     RolloutConfig config;
     config.update_weights = false;
     config.verbose = false;
-    // TODO: let us evaluate with opponent going first if we want.
-    config.opponent_goes_first = false;
+    config.opponent_goes_first = opponent_goes_first;
     return rollout(game, this, opponent_policy, config);
   }
 
   struct RolloutConfig {
     bool update_weights;
     bool opponent_goes_first;
-    bool verbose;
+    bool verbose = false;
   };
 
   // Simulate a rollout with 'self_policy' and 'opponent_policy'.

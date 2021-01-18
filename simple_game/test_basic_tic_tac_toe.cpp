@@ -47,8 +47,12 @@ TEST_CASE("Basic rollout backprop is working", "[mcts]") {
 
   MCTS<State, Action> mcts;
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
-  auto rollout_history =
-      mcts.rollout(game.get(), self_policy.get(), opponent_policy.get());
+
+  MCTS<State, Action>::RolloutConfig config;
+  config.update_weights = true;
+
+  auto rollout_history = mcts.rollout(game.get(), self_policy.get(),
+                                      opponent_policy.get(), config);
 
   // get the nodes for introspection
   const auto &nodes = mcts.getNodes();
@@ -60,5 +64,43 @@ TEST_CASE("Basic rollout backprop is working", "[mcts]") {
     REQUIRE(nodes.at(frame.state).num_rollouts_involved == 1);
     // Each frame should have a positive reward since we won.
     REQUIRE(nodes.at(frame.state).total_reward_from_here == Approx(1.0));
+  }
+}
+
+TEST_CASE("Rollout backprop is working when playing as player 2", "[mcts]") {
+  // Make a game where x wins and make sure the tree is updated correctly.
+  //
+  //  x3, x7, x5
+  //      x1, o2
+  //  o6,   , o4
+  std::vector<Action> opponent_moves = {Action(4), Action(0), Action(2),
+                                        Action(1)};
+  std::vector<Action> self_moves = {Action(5), Action(8), Action(6)};
+  std::unique_ptr<Policy<State, Action>> self_policy =
+      std::make_unique<HardCodedPolicy<State, Action>>(std::move(self_moves));
+  std::unique_ptr<Policy<State, Action>> opponent_policy =
+      std::make_unique<HardCodedPolicy<State, Action>>(
+          std::move(opponent_moves));
+
+  MCTS<State, Action> mcts;
+  std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
+
+  MCTS<State, Action>::RolloutConfig config;
+  config.opponent_goes_first = true;
+  config.update_weights = true;
+
+  auto rollout_history = mcts.rollout(game.get(), self_policy.get(),
+                                      opponent_policy.get(), config);
+
+  // get the nodes for introspection
+  const auto &nodes = mcts.getNodes();
+
+  for (const auto &frame : rollout_history) {
+    std::cout << "Verifying assumptions for state: " << std::endl;
+    frame.state.render();
+    REQUIRE(nodes.find(frame.state) != nodes.end());
+    REQUIRE(nodes.at(frame.state).num_rollouts_involved == 1);
+    // Each frame should have a negative reward since we lost.
+    REQUIRE(nodes.at(frame.state).total_reward_from_here == Approx(-1.0));
   }
 }
