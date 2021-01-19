@@ -68,14 +68,12 @@ RewardMap TicTacToe::simulate(const TTTAction &action) {
   state_.board[action.board_position] = char_to_place;
   state_.x_turn = !state_.x_turn;
 
-  // TODO: since policy might be playing as either player, should not hard-code
-  // assumption here that x winning is positive score.
   if (isThreeInARow(state_.board, 'x')) {
-    return {{0, 1.0}, {1, -1.0}};
+    return TwoPlayerFirstPlayerWinsReward;
   } else if (isThreeInARow(state_.board, 'o')) {
-    return {{0, -1.0}, {1, 1.0}};
+    return TwoPlayerSecondPlayerWinsReward;
   }
-  return {{0, 0.0}, {1, 0.0}};
+  return TwoPlayerNobodyWinsReward;
 }
 
 // TODO: can we avoid code duplication between simulate and simulateDry without

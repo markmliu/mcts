@@ -13,7 +13,7 @@ int main() {
   for (int i = 0; i < 10000; i++) {
     mcts.train(game.get());
   }
-  mcts.renderTree(/*max_depth=*/3);
+  // mcts.renderTree(/*max_depth=*/3);
 
   game->reset();
   // play against it!
@@ -24,6 +24,7 @@ int main() {
   config.update_weights = false;
   config.verbose = true;
   config.opponent_goes_first = true;
+  // TODO: Use "evaluate" instead of rollout or "eps" maay be set to non-zero.
   mcts.rollout(game.get(), &mcts, opponent_policy.get(), config);
 
   return 0;

@@ -10,6 +10,10 @@
 
 TODO: Should use cmake to build instead.
 
+## Formatting
+
+`clang-format -i *cpp *.h`
+
 ## Plotting
 
 This part relies of matplotlib-cpp. See https://matplotlib-cpp.readthedocs.io/en/latest/compiling.html for details on compiling. Python libraries need to be linked. Example that works on my macbook with python3.9 installed natively:

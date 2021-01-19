@@ -7,10 +7,9 @@ typedef TTTState State;
 typedef TTTAction Action;
 
 // Returns win/loss/draw percentage
-std::array<double, 3>
-evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
-                              Game<State, Action> *game,
-                              bool opponent_goes_first = false) {
+std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
+                                                    Game<State, Action> *game,
+                                                    bool opponent_goes_first) {
   auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
 
   const int num_runs = 300;
@@ -20,10 +19,10 @@ evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
   for (int i = 0; i < num_runs; i++) {
     // Infer game type from reward.
-    double final_reward =
-        mcts->evaluate(game, opponent_policy.get(), opponent_goes_first)
-            .back()
-            .reward;
+    double final_reward = mcts->evaluate(game, opponent_policy.get(),
+                                         opponent_goes_first, /*verbose=*/false)
+                              .back()
+                              .reward;
     if (final_reward == 1.0) {
       num_wins++;
     } else if (final_reward == 0.0) {
@@ -39,8 +38,7 @@ evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
 namespace plt = matplotlibcpp;
 
-void train_test_plot(EpsilonScheduler *sched,
-                     bool opponent_goes_first = false) {
+void train_test_plot(EpsilonScheduler *sched, bool opponent_goes_first) {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   MCTS<State, Action> mcts;
 
@@ -62,7 +60,9 @@ void train_test_plot(EpsilonScheduler *sched,
   draw_percents.push_back(evaluation[2]);
 
   for (int i = 0; i < 20; i++) {
-    mcts.train(game.get(), NUM_ROLLOUTS_PER_TRAIN, sched->getEpsilon());
+    mcts.train(game.get(), NUM_ROLLOUTS_PER_TRAIN, sched->getEpsilon(),
+               std::make_unique<RandomValidPolicy<State, Action>>(),
+               opponent_goes_first);
     std::cout << "finishing training iteration: " << i << std::endl;
     num_training_rollouts += NUM_ROLLOUTS_PER_TRAIN;
     xs.push_back((double)num_training_rollouts);
@@ -75,6 +75,15 @@ void train_test_plot(EpsilonScheduler *sched,
   plt::named_plot("win_percents_eps_" + sched->name(), xs, win_percents);
   plt::named_plot("loss_percents_" + sched->name(), xs, loss_percents);
   plt::named_plot("draw_percents_" + sched->name(), xs, draw_percents);
+
+  // auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
+  // mcts.evaluate(game.get(), opponent_policy.get(), opponent_goes_first,
+  // /*verbose=*/true);
+
+  // What about if we show a verbose instance of training?
+  // mcts.train(game.get(), 1, /*eps=*/0.0,
+  // std::make_unique<UserInputPolicy<State, Action>>(),
+  // /*opponent_goes_first=*/true, /*verbose=*/true);
 }
 
 int main() {

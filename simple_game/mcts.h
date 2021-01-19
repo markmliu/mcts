@@ -46,15 +46,21 @@ public:
   }
 
   // training with eps-greedy policy for self.
+  // TODO: the way training works right now, if we train as x's, we will be
+  // learn to throw really hard if we play as o's. Should we fix this by
+  // augmenting the state with the player number? Or is there a more elegant way
+  // to invert the reward?
   void train(Game<State, Action> *game, int num_rollouts = 1, double eps = 1.0,
-             bool opponent_goes_first = false) {
+             std::unique_ptr<Policy<State, Action>> opponent_policy =
+                 std::make_unique<RandomValidPolicy<State, Action>>(),
+             bool opponent_goes_first = false, bool verbose = false) {
     // eps is the fraction of the time that we choose random policy.
     assert(eps <= 1.0 && eps >= 0.0);
     eps_ = eps;
     RolloutConfig config;
     config.update_weights = true;
+    config.verbose = verbose;
     config.opponent_goes_first = opponent_goes_first;
-    auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
     for (int i = 0; i < num_rollouts; i++) {
       // pass self as policy
       rollout(game, this, opponent_policy.get(), config);
@@ -63,12 +69,12 @@ public:
 
   std::vector<HistoryFrame> evaluate(Game<State, Action> *game,
                                      Policy<State, Action> *opponent_policy,
-                                     bool opponent_goes_first = false) {
-    // totally greedy
+                                     bool opponent_goes_first, bool verbose) {
+    // when we're evaluating the strength of mcts, we want to be totally greedy
     eps_ = 0.0;
     RolloutConfig config;
     config.update_weights = false;
-    config.verbose = false;
+    config.verbose = verbose;
     config.opponent_goes_first = opponent_goes_first;
     return rollout(game, this, opponent_policy, config);
   }
@@ -95,6 +101,7 @@ public:
 
     // 1. Do a playthrough, keeping track of the actions that were played.
     game->reset();
+    verbose_ = config.verbose;
 
     std::vector<HistoryFrame> rollout_history;
 
@@ -113,7 +120,7 @@ public:
       // own and opponent's actions?
       double reward = game->simulate(action).at(player_num);
       // TODO: wrap this in a toggle-able logger
-      if (config.verbose) {
+      if (verbose_) {
         game->render();
       }
       rollout_history.emplace_back(action, reward, game->getCurrentState());
@@ -127,6 +134,10 @@ public:
     double total_rollout_reward = std::accumulate(
         rollout_history.begin(), rollout_history.end(), 0.0,
         [&](double a, const HistoryFrame &el) { return a + el.reward; });
+
+    if (verbose_) {
+      std::cout << "total reward: " << total_rollout_reward << std::endl;
+    }
     auto updateNode = [&](Node *current) {
       current->num_rollouts_involved++;
       current->total_reward_from_here += total_rollout_reward;
@@ -215,6 +226,10 @@ public:
       const std::pair<State, RewardMap> state_reward =
           game->simulateDry(current_state, action);
       double state_value = getExpectedReward(state_reward.first);
+      if (verbose_) {
+        std::cout << "Action " << action.toString()
+                  << " has expected reward: " << state_value << std::endl;
+      }
       if (state_value > best_value_seen) {
         best_idx = i;
         best_value_seen = state_value;
@@ -240,8 +255,9 @@ private:
 
   // When running this->act(), use eps-greedy policy.
   // TODO: don't like that eps_ is a stateful thing, let's remove this if
-  // possible.
+  // possible. same with verbose_.
   double eps_;
+  bool verbose_;
   std::random_device rd_; // obtain a random number from hardware
   std::default_random_engine eng_;
   std::uniform_real_distribution<float> distr_;
