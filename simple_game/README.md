@@ -1,6 +1,6 @@
 ### Background
 
-Monte Carlo Tree Search is a technique used for learning to make decisions. See [Wikipedia](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) for more details.
+Monte Carlo Tree Search is a technique used for learning to make decisions. See [Wikipedia](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) for more details. This is a simple implentation that learns to play tic-tac-toe as either first or second player..
 
 ### Usage
 
