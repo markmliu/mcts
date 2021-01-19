@@ -1,3 +1,7 @@
+### Background
+
+Monte Carlo Tree Search is a technique used for learning to make decisions. See [Wikipedia](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) for more details.
+
 ### Usage
 
 ## Running the main runner
