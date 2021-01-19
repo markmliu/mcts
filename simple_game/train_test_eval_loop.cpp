@@ -38,7 +38,8 @@ std::array<double, 3> evaluateAgainstRandomOpponent(MCTS<State, Action> *mcts,
 
 namespace plt = matplotlibcpp;
 
-void train_test_plot(EpsilonScheduler *sched, bool opponent_goes_first) {
+void train_test_plot(EpsilonScheduler *sched, bool opponent_goes_first,
+                     bool interactive) {
   std::unique_ptr<Game<State, Action>> game = std::make_unique<TicTacToe>();
   MCTS<State, Action> mcts;
 
@@ -76,14 +77,22 @@ void train_test_plot(EpsilonScheduler *sched, bool opponent_goes_first) {
   plt::named_plot("loss_percents_" + sched->name(), xs, loss_percents);
   plt::named_plot("draw_percents_" + sched->name(), xs, draw_percents);
 
-  // auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
-  // mcts.evaluate(game.get(), opponent_policy.get(), opponent_goes_first,
-  // /*verbose=*/true);
+  // Play against it as long as you want!
+  auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
 
-  // What about if we show a verbose instance of training?
-  // mcts.train(game.get(), 1, /*eps=*/0.0,
-  // std::make_unique<UserInputPolicy<State, Action>>(),
-  // /*opponent_goes_first=*/true, /*verbose=*/true);
+  if (!interactive) {
+    return;
+  }
+  std::cout << "Play a game? ;) (y/n)" << std::endl;
+  char play;
+  std::cin >> play;
+  while (play == 'y') {
+    mcts.evaluate(game.get(), opponent_policy.get(), opponent_goes_first,
+                  /*verbose=*/true);
+    std::cout << "Play a game? ;) (y/n)" << std::endl;
+    std::cin >> play;
+  }
+  std::cout << "Good games!" << std::endl;
 }
 
 int main() {
@@ -103,7 +112,7 @@ int main() {
   // Let's try plotting with opponent going first
   {
     FixedEpsilonScheduler sched(1.0);
-    train_test_plot(&sched, /*opponent_goes_first=*/true);
+    train_test_plot(&sched, /*opponent_goes_first=*/true, /*interactive=*/true);
   }
   plt::title(
       "Tic-tac-toe MCTS performance as second player against random opponent");

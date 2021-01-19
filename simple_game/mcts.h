@@ -126,6 +126,17 @@ public:
       rollout_history.emplace_back(action, reward, game->getCurrentState());
     }
 
+    if (verbose_) {
+      const double final_reward = rollout_history.back().reward;
+      if (final_reward == 1.0) {
+        std::cout << "mcts won!" << std::endl;
+      } else if (final_reward == -1.0) {
+        std::cout << "opponent won!" << std::endl;
+      } else {
+        std::cout << "it's a draw!" << std::endl;
+      }
+    }
+
     if (!config.update_weights) {
       return rollout_history;
     }
