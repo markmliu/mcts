@@ -61,9 +61,9 @@ void train_test_plot(EpsilonScheduler *sched, bool opponent_goes_first,
   draw_percents.push_back(evaluation[2]);
 
   for (int i = 0; i < 20; i++) {
-    mcts.train(game.get(), NUM_ROLLOUTS_PER_TRAIN, sched->getEpsilon(),
-               std::make_unique<RandomValidPolicy<State, Action>>(),
-               opponent_goes_first);
+    auto opponent_policy = std::make_unique<RandomValidPolicy<State, Action>>();
+    mcts.train(game.get(), opponent_policy.get(), NUM_ROLLOUTS_PER_TRAIN,
+               sched->getEpsilon(), opponent_goes_first);
     std::cout << "finishing training iteration: " << i << std::endl;
     num_training_rollouts += NUM_ROLLOUTS_PER_TRAIN;
     xs.push_back((double)num_training_rollouts);

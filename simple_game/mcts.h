@@ -50,9 +50,8 @@ public:
   // learn to throw really hard if we play as o's. Should we fix this by
   // augmenting the state with the player number? Or is there a more elegant way
   // to invert the reward?
-  void train(Game<State, Action> *game, int num_rollouts = 1, double eps = 1.0,
-             std::unique_ptr<Policy<State, Action>> opponent_policy =
-                 std::make_unique<RandomValidPolicy<State, Action>>(),
+  void train(Game<State, Action> *game, Policy<State, Action> *opponent_policy,
+             int num_rollouts = 1, double eps = 1.0,
              bool opponent_goes_first = false, bool verbose = false) {
     // eps is the fraction of the time that we choose random policy.
     assert(eps <= 1.0 && eps >= 0.0);
@@ -63,7 +62,7 @@ public:
     config.opponent_goes_first = opponent_goes_first;
     for (int i = 0; i < num_rollouts; i++) {
       // pass self as policy
-      rollout(game, this, opponent_policy.get(), config);
+      rollout(game, this, opponent_policy, config);
     }
   }
 
