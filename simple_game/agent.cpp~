@@ -1,5 +1,0 @@
-#include "agent.h"
-
-void Agent::play(Game* game) {
-    game->getValidActions();
-}
