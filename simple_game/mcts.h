@@ -218,14 +218,14 @@ public:
     } else {
 
       // find the "best" state
-      int best_idx = getBestActionIdx(valid_actions, game);
+      int best_idx = getBestActionIdx(valid_actions, game, verbose_);
       assert(best_idx >= 0);
       return valid_actions[best_idx];
     }
   };
 
   int getBestActionIdx(const std::vector<Action> &valid_actions,
-                       const Game<State, Action> *game) {
+                       const Game<State, Action> *game, bool verbose) {
     const State &current_state = game->getCurrentState();
     double best_value_seen = std::numeric_limits<double>::lowest();
     int best_idx = -1;
@@ -236,9 +236,15 @@ public:
       const std::pair<State, RewardMap> state_reward =
           game->simulateDry(current_state, action);
       double state_value = getExpectedReward(state_reward.first);
-      if (verbose_) {
+      if (verbose) {
         std::cout << "Action " << action.toString()
                   << " has expected reward: " << state_value << std::endl;
+
+        std::pair<double, int> reward_num_rollouts =
+            getNodeInfo(state_reward.first);
+        std::cout << "Rollout out " << reward_num_rollouts.second
+                  << " times and received " << reward_num_rollouts.first
+                  << " reward." << std::endl;
       }
       if (state_value > best_value_seen) {
         best_idx = i;
@@ -263,6 +269,20 @@ private:
     return (node.total_reward_from_here / node.num_rollouts_involved);
   }
 
+  // Return (total reward, num rollouts)
+  // Just used for debugging.
+  std::pair<double, int> getNodeInfo(const State &state) {
+    if (nodes_.find(state) == nodes_.end()) {
+      return std::make_pair(0.0, 0);
+    }
+    const Node &node = nodes_.at(state);
+    // If a state gets constructed, it probably should have at least one
+    // rollout.
+    assert(node.num_rollouts_involved != 0);
+    return std::make_pair(node.total_reward_from_here,
+                          node.num_rollouts_involved);
+  }
+
   // When running this->act(), use eps-greedy policy.
   // TODO: don't like that eps_ is a stateful thing, let's remove this if
   // possible. same with verbose_.
@@ -275,6 +295,41 @@ private:
 
   std::map<State, Node> nodes_;
   Node *root_;
+};
+
+// Like UserInputPolicy, but takes a mcts as input to give hints on what it
+// would do next
+template <class State, class Action>
+class UserInputPolicyWithHint : public Policy<State, Action> {
+
+private:
+  MCTS<State, Action> *mcts_;
+
+public:
+  UserInputPolicyWithHint(MCTS<State, Action> *mcts) { mcts_ = mcts; }
+  Action act(const Game<State, Action> *game) override {
+    assert(!game->isTerminal());
+    std::vector<Action> valid_actions = game->getValidActions();
+    assert(!valid_actions.empty());
+
+    // Display valid actions to user
+    for (int i = 0; i < valid_actions.size(); ++i) {
+      std::cout << i << ": " << valid_actions[i].toString() << std::endl;
+    }
+    std::cout << "Expected rewards according to mcts: " << std::endl;
+    // get the best action index just to print out stuff for the user.
+    int unused = mcts_->getBestActionIdx(valid_actions, game, /*verbose=*/true);
+    int user_selected_index = -1;
+    std::cin >> user_selected_index;
+    while (user_selected_index < 0 ||
+           user_selected_index >= valid_actions.size()) {
+      std::cout << "User input out of range, try again. " << std::endl;
+      std::cin.ignore();
+      std::cin.clear();
+      std::cin >> user_selected_index;
+    }
+    return valid_actions[user_selected_index];
+  }
 };
 
 #endif // MCTS_MCTS

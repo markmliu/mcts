@@ -36,7 +36,7 @@ int main() {
   // Make them play each other and learn from each other?
 
   const int NUM_ROLLOUTS_PER_SELF_PLAY_EPOCH = 2000;
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 20; i++) {
     bool training_first_player = i % 2 == 0;
     std::cout << "self play iteration: " << i << std::endl;
     // trainee will learn from playing the trainer.
@@ -53,7 +53,9 @@ int main() {
 
   // play against the second player tree
 
-  auto opponent_policy = std::make_unique<UserInputPolicy<State, Action>>();
+  auto opponent_policy =
+      std::make_unique<UserInputPolicyWithHint<State, Action>>(
+          &first_player_mcts);
   std::cout << "Play a game? ;) (y/n)" << std::endl;
   char play;
   std::cin >> play;
