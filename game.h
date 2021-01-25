@@ -17,6 +17,8 @@ public:
   // returns a reward for each player
   virtual RewardMap simulate(const Action &a) = 0;
   // Like above, but doesn't actually modify state
+  // TODO: Probably we don't need to keep state in the game, and we can take the
+  // state as an input for all these functions.
   virtual std::pair<State, RewardMap> simulateDry(const State &state,
                                                   const Action &a) const = 0;
   virtual std::vector<Action> getValidActions() const = 0;

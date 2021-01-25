@@ -150,6 +150,10 @@ public:
     }
     auto updateNode = [&](Node *current) {
       current->num_rollouts_involved++;
+      // TODO: this is wrong - we should only receive reward at each node for
+      // reward received from that point on, not from the beginning of the
+      // rollout. It's okay in tic-tac-toe because we only receive reward at the
+      // end anyway.
       current->total_reward_from_here += total_rollout_reward;
     };
 
