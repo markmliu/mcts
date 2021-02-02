@@ -44,6 +44,7 @@ std::string TTTState::render() const {
     return std::to_string(idx);
   };
   std::stringstream ss;
+  ss << std::endl;
   ss << char_to_display(board[0], 0) << "," << char_to_display(board[1], 1)
      << "," << char_to_display(board[2], 2) << std::endl;
   ss << char_to_display(board[3], 3) << "," << char_to_display(board[4], 4)
@@ -58,7 +59,7 @@ TTTAction::TTTAction(int board_position_) : board_position(board_position_) {}
 
 TicTacToe::TicTacToe() {}
 
-void TicTacToe::reset() { state_ = TTTState(); }
+void TicTacToe::reset() {state_ = TTTState(); }
 
 RewardMap TicTacToe::simulate(const TTTAction &action) {
   // Must place at empty square

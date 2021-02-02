@@ -75,6 +75,7 @@ public:
 
   Node &getNode(const Game<State, Action> *const game) {
     // Should remove this assert once we are sure in logic.
+
     assert(nodes_.find(game->getCurrentState()) != nodes_.end());
     return nodes_.at(game->getCurrentState());
   }
@@ -103,12 +104,11 @@ public:
     // a leaf node.
     // 2. Expansion - Since getBestActionIdx will return the first non-explored
     // child node, this does the expansion phase as well.
-    Node &cur_node = *root_;
+    Node* cur_node = root_;
     logger << "Selection phase: " << std::endl;
-    while (!cur_node.children.empty()) {
-      logger << "current node: " << cur_node.state.render() << std::endl;
-      ;
-      int selected_action_idx = getBestActionIdx(game, cur_node);
+    while (!cur_node->children.empty()) {
+      logger << "calling best action idx with cur_node: " << cur_node->state.render() << " and game state: " << game->getCurrentState().render() << std::endl;
+      int selected_action_idx = getBestActionIdx(game, *cur_node);
       const Action chosen_action =
           game->getValidActions().at(selected_action_idx);
       int player_turn = game->turn();
@@ -118,7 +118,7 @@ public:
 
       rollout_history.emplace_back(chosen_action, reward,
                                    game->getCurrentState(), player_turn);
-      cur_node = getNode(game);
+      cur_node = &getNode(game);
     }
 
     bool need_to_update_cur_node = !game->isTerminal();
@@ -138,7 +138,7 @@ public:
         const Action action = simulation_policy->act(game);
         const RewardMap reward = game->simulate(action);
         const Node &child_node =
-            getOrCreateNode(game->getCurrentState(), action, cur_node);
+            getOrCreateNode(game->getCurrentState(), action, *cur_node);
         rollout_history.emplace_back(action, reward, game->getCurrentState(),
                                      player_turn);
         logger << "simulation action: " << action.toString()
@@ -199,9 +199,6 @@ public:
   // If it does, we should have at least one simulation going through here.
   // Goes through all possible actions and returns best UCB value, returning the
   // index of any unexplored actions first.
-
-  // what's the rationale of choosing the child with the highest expected
-  // reward?
   int getBestActionIdx(const Game<State, Action> *game, Node &current_node) {
 
     const std::vector<Action> &valid_actions = game->getValidActions();
@@ -220,6 +217,7 @@ public:
           game->simulateDry(current_state, action);
       const Node &child_node =
           getOrCreateNode(state_reward.first, action, current_node);
+
       double ucb = getUcb(
           child_node.total_reward_from_here.at(current_node_turn),
           child_node.num_rollouts_involved, current_node.num_rollouts_involved);
@@ -306,9 +304,10 @@ private:
   double getUcb(double child_total_reward, int child_num_rollouts,
                 int parent_num_rollouts) {
     assert(parent_num_rollouts > 0);
-    std::cout << "parent num rollouts: " << parent_num_rollouts << std::endl;
-    std::cout << "child num rollouts: " << child_num_rollouts << std::endl;
-    assert(child_num_rollouts <= parent_num_rollouts);
+    // std::cout << "parent num rollouts: " << parent_num_rollouts << std::endl;
+    // std::cout << "child num rollouts: " << child_num_rollouts << std::endl;
+    // This would be true if we couldn't go to the same child from different parents..in tic tac toe that might not be true..
+    // assert(child_num_rollouts <= parent_num_rollouts);
 
     if (child_num_rollouts == 0) {
       return std::numeric_limits<double>::max();
