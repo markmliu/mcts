@@ -12,7 +12,7 @@ int main() {
 
   // rollout
   {
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 10000; i++) {
       if (i % 100 == 0) {
         std::cout << "rollout iteration: " << i << std::endl;
       }
