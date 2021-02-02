@@ -1,3 +1,6 @@
+#ifndef MCTS_TIC_TAC_TOE
+#define MCTS_TIC_TAC_TOE
+
 #include <array>
 #include <optional>
 #include <string>
@@ -6,7 +9,7 @@
 
 struct TTTState {
   TTTState();
-  void render() const;
+  std::string render() const;
   // each square can be 'x', 'o' or '_'
   std::array<char, 9> board;
   // start off as x's turn, flip b/w x and o.
@@ -14,6 +17,13 @@ struct TTTState {
 
   bool operator<(const TTTState &rhs) const {
     return std::tie(board, x_turn) < std::tie(rhs.board, rhs.x_turn);
+  }
+
+  int getTurn() const {
+    if (x_turn) {
+      return 0;
+    }
+    return 1;
   }
 };
 
@@ -44,9 +54,11 @@ public:
   const TTTState &getCurrentState() const override;
   int turn() const override;
   bool isTerminal() const override;
-  void render() const override;
+  std::string render() const override;
   ~TicTacToe() = default;
 
 private:
   TTTState state_;
 };
+
+#endif // MCTS_TIC_TAC_TOE

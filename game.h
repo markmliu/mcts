@@ -4,11 +4,23 @@
 #include <map>
 #include <vector>
 
-typedef std::map<int, double> RewardMap;
+class RewardMap {
+public:
+  RewardMap(const std::map<int, double> &data_) : data(data_) {}
 
-const RewardMap TwoPlayerFirstPlayerWinsReward = {{0, 1.0}, {1, -1.0}};
-const RewardMap TwoPlayerSecondPlayerWinsReward = {{0, -1.0}, {1, 1.0}};
-const RewardMap TwoPlayerNobodyWinsReward = {{0, 0.0}, {1, 0.0}};
+  double &at(int turn);
+  const double &at(int turn) const;
+  RewardMap &operator+=(const RewardMap &rhs);
+  std::map<int, double> data;
+};
+
+RewardMap operator+(RewardMap lhs, const RewardMap &rhs);
+
+const RewardMap TwoPlayerFirstPlayerWinsReward =
+    RewardMap({{0, 1.0}, {1, -1.0}});
+const RewardMap TwoPlayerSecondPlayerWinsReward =
+    RewardMap({{0, -1.0}, {1, 1.0}});
+const RewardMap TwoPlayerNobodyWinsReward = RewardMap({{0, 0.0}, {1, 0.0}});
 
 // Game should tell you all valid moves at any state.
 template <class State, class Action> class Game {
@@ -28,7 +40,7 @@ public:
   // and 1.
   virtual int turn() const = 0;
   virtual bool isTerminal() const = 0;
-  virtual void render() const = 0;
+  virtual std::string render() const = 0;
   virtual ~Game() = default;
 };
 

@@ -1,6 +1,7 @@
 #include "assert.h"
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 #include "tic-tac-toe.h"
 
@@ -36,22 +37,21 @@ int numFreeSpaces(const std::array<char, 9> &board) {
 TTTState::TTTState()
     : board({'_', '_', '_', '_', '_', '_', '_', '_', '_'}), x_turn(true) {}
 
-void TTTState::render() const {
+std::string TTTState::render() const {
   auto char_to_display = [](char c, int idx) {
     if (c == 'x' || c == 'o')
       return std::string(1, c);
     return std::to_string(idx);
   };
-  std::cout << char_to_display(board[0], 0) << ","
-            << char_to_display(board[1], 1) << ","
-            << char_to_display(board[2], 2) << std::endl;
-  std::cout << char_to_display(board[3], 3) << ","
-            << char_to_display(board[4], 4) << ","
-            << char_to_display(board[5], 5) << std::endl;
-  std::cout << char_to_display(board[6], 6) << ","
-            << char_to_display(board[7], 7) << ","
-            << char_to_display(board[8], 8) << std::endl;
-  std::cout << "_____________________________________" << std::endl;
+  std::stringstream ss;
+  ss << char_to_display(board[0], 0) << "," << char_to_display(board[1], 1)
+     << "," << char_to_display(board[2], 2) << std::endl;
+  ss << char_to_display(board[3], 3) << "," << char_to_display(board[4], 4)
+     << "," << char_to_display(board[5], 5) << std::endl;
+  ss << char_to_display(board[6], 6) << "," << char_to_display(board[7], 7)
+     << "," << char_to_display(board[8], 8) << std::endl;
+  ss << "_____________________________________" << std::endl;
+  return ss.str();
 }
 
 TTTAction::TTTAction(int board_position_) : board_position(board_position_) {}
@@ -122,4 +122,4 @@ bool TicTacToe::isTerminal() const {
   return is_terminal;
 }
 
-void TicTacToe::render() const { state_.render(); }
+std::string TicTacToe::render() const { return state_.render(); }
