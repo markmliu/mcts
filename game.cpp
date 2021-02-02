@@ -1,4 +1,5 @@
 #include "game.h"
+#include <sstream>
 
 double &RewardMap::at(int turn) { return data.at(turn); }
 
@@ -17,4 +18,15 @@ RewardMap operator+(RewardMap lhs, const RewardMap &rhs) {
   // Key-wise add every element of rhs to lhs.
   lhs += rhs;
   return lhs;
+}
+
+std::string RewardMap::toString() const {
+  std::stringstream ss;
+  ss << std::endl;
+
+  for (const auto& kv : data) {
+    ss << kv.first << ": " << kv.second << std::endl;
+  }
+  ss << std::endl;
+  return ss.str();
 }

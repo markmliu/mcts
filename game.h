@@ -11,6 +11,9 @@ public:
   double &at(int turn);
   const double &at(int turn) const;
   RewardMap &operator+=(const RewardMap &rhs);
+
+  std::string toString() const;
+
   std::map<int, double> data;
 };
 

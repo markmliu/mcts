@@ -186,6 +186,7 @@ public:
       Node &node = nodes_.at(frame.state);
       node.num_rollouts_involved++;
       reward_from_here_for_rollout += frame.reward;
+      logger << "update node with state: " << std::endl << frame.state.render() << " with reward map: " << reward_from_here_for_rollout.toString() << std::endl;
       node.total_reward_from_here += reward_from_here_for_rollout;
     }
 
@@ -305,6 +306,8 @@ private:
   double getUcb(double child_total_reward, int child_num_rollouts,
                 int parent_num_rollouts) {
     assert(parent_num_rollouts > 0);
+    std::cout << "parent num rollouts: " << parent_num_rollouts << std::endl;
+    std::cout << "child num rollouts: " << child_num_rollouts << std::endl;
     assert(child_num_rollouts <= parent_num_rollouts);
 
     if (child_num_rollouts == 0) {

@@ -145,10 +145,10 @@ TEST_CASE("Rollout backprop win when playing as player 2", "[mcts]") {
 }
 
 TEST_CASE("Test rewardmap plus operator", "[RewardMap]") {
-  RewardMap a = {{0, 1.0}, {1, 2.0}};
-  RewardMap b = {{0, 4.0}, {1, -2.0}};
+  RewardMap a = RewardMap({{0, 1.0}, {1, 2.0}});
+  RewardMap b = RewardMap({{0, 4.0}, {1, -2.0}});
 
-  Rewardmap c = a + b;
+  RewardMap c = a + b;
   REQUIRE(c.at(0) == Approx(5.0));
   REQUIRE(c.at(1) == Approx(0.0));
 }
@@ -174,15 +174,6 @@ TEST_CASE("First rollout backprop is working", "[uct]") {
 
   // get the nodes for introspection
   const auto &nodes = uct.getNodes();
-
-  for (const auto &frame : rollout_history) {
-    std::cout << "Verifying assumptions for state: " << std::endl;
-    frame.state.render();
-    REQUIRE(nodes.find(frame.state) != nodes.end());
-    REQUIRE(nodes.at(frame.state).num_rollouts_involved == 1);
-    // Each frame should have a positive reward since we won.
-    REQUIRE(nodes.at(frame.state).total_reward_from_here == Approx(1.0));
-  }
 
   // Let's roll it out again?
   {
